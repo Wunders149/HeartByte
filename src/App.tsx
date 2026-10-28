@@ -18,6 +18,7 @@ import { MatchMessenger } from './components/MatchMessenger';
 import { RegistrationModal } from './components/RegistrationModal';
 import { EventCreatorModal } from './components/EventCreatorModal';
 import { AdminPortal } from './components/AdminPortal';
+import { EventRoadmap } from './components/EventRoadmap';
 import { audio } from './utils/audio';
 import { Language, TRANSLATIONS } from './utils/i18n';
 import { ShieldCheck } from 'lucide-react';
@@ -323,8 +324,23 @@ export default function App() {
       setCurrentQueueIndex(nextIdx);
       setActiveSuitorId(datingQueue[nextIdx]);
     } else {
-      setScreen('EVENT_LOBBY');
+      if (results.length > 0) {
+        setScreen('MATCH_REVEAL');
+      } else {
+        setScreen('EVENT_LOBBY');
+      }
     }
+  };
+
+  // Safe roadmap & navigation router
+  const handleNavigateScreen = (targetScreen: AppScreen) => {
+    if (targetScreen === 'SPEED_DATE') {
+      if (datingQueue.length === 0 || currentQueueIndex >= datingQueue.length) {
+        handleStartFullEvent();
+        return;
+      }
+    }
+    setScreen(targetScreen);
   };
 
   // Reset all speed dating progress
@@ -379,7 +395,7 @@ export default function App() {
       {/* Public Top Bar Navigation */}
       <PublicHeader
         currentScreen={screen}
-        onNavigate={setScreen}
+        onNavigate={handleNavigateScreen}
         matchesCount={matchedSuitors.length}
         crtEnabled={crtEnabled}
         onToggleCrt={handleToggleCrt}
@@ -390,6 +406,17 @@ export default function App() {
         language={language}
         onToggleLanguage={handleToggleLanguage}
         onStartSpeedDating={handleStartFullEvent}
+      />
+
+      {/* Visual Event Workflow Roadmap ("Work Road") */}
+      <EventRoadmap
+        currentScreen={screen}
+        onNavigate={handleNavigateScreen}
+        language={language}
+        datesCompletedCount={results.length}
+        totalDatesCount={SUITORS_DATA.length}
+        matchesCount={matchedSuitors.length}
+        hasRegistered={registrations.length > 0}
       />
 
       {/* Screen Views */}
@@ -462,6 +489,7 @@ export default function App() {
             language={language}
             onFinishDate={handleFinishDate}
             onSkipToNext={handleSkipDate}
+            onExitToLobby={() => setScreen('EVENT_LOBBY')}
           />
         )}
 
@@ -476,6 +504,7 @@ export default function App() {
               setScreen('MATCH_MESSENGER');
             }}
             onResetDates={handleResetDates}
+            onBackToLobby={() => setScreen('EVENT_LOBBY')}
           />
         )}
 
@@ -486,6 +515,7 @@ export default function App() {
             initialSuitorId={activeSuitorId}
             language={language}
             onBackToLobby={() => setScreen('EVENT_LOBBY')}
+            onOpenReveal={() => setScreen('MATCH_REVEAL')}
           />
         )}
       </main>

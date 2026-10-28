@@ -148,6 +148,19 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
               </button>
             )}
 
+            {results.length > 0 && !allCompleted && (
+              <button
+                onClick={() => {
+                  audio.playMatchFanfare();
+                  onOpenReveal();
+                }}
+                className="px-4 py-3 bg-yellow-950/80 hover:bg-yellow-900/80 border border-yellow-500/50 text-yellow-300 font-retro text-xs rounded-xl transition-colors flex items-center gap-2"
+              >
+                <Flame className="w-4 h-4 text-yellow-400" />
+                <span>{t.viewMatchReveal} ({results.length})</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 audio.playSelect();

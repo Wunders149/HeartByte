@@ -153,6 +153,16 @@ export interface Translations {
   revenueByCategory: string;
   topDonorsTitle: string;
 
+  // Workflow & Roadmap
+  workRoadTitle: string;
+  pauseAndExitToLobby: string;
+  backToResults: string;
+  backToLobbyWithoutReset: string;
+  resumeSpeedDating: string;
+  nextStepAction: string;
+  prevStepAction: string;
+  currentStepBadge: string;
+
   // Footer
   footerCopyright: string;
   footerProceeds: string;
@@ -308,6 +318,16 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     revenueByCategory: 'Revenue by Cause Category',
     topDonorsTitle: 'Top Community Benefactors',
 
+    // Workflow & Roadmap
+    workRoadTitle: 'Event Roadmap & Workflow',
+    pauseAndExitToLobby: 'Pause & Return to Lounge',
+    backToResults: 'View Match Results',
+    backToLobbyWithoutReset: 'Return to Lounge',
+    resumeSpeedDating: 'Resume Speed Dating',
+    nextStepAction: 'Next Step',
+    prevStepAction: 'Previous Step',
+    currentStepBadge: 'Current Stage',
+
     footerCopyright: 'HeartByte · Community Fundraiser Speed Dating Platform · 8-Bit Chiptunes',
     footerProceeds: '100% Proceeds to Beneficiaries',
     footerOrganizerLink: 'Organizer Portal',
@@ -460,6 +480,16 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     creditDonationBtn: 'Créditer le Don →',
     revenueByCategory: 'Répartition par Catégorie de Cause',
     topDonorsTitle: 'Meilleurs Mécènes Communautaires',
+
+    // Workflow & Roadmap
+    workRoadTitle: 'Feuille de Route & Parcours de l’Événement',
+    pauseAndExitToLobby: 'Pause & Retour au Salon',
+    backToResults: 'Voir les Résultats des Matchs',
+    backToLobbyWithoutReset: 'Retour au Salon',
+    resumeSpeedDating: 'Reprendre les Rencontres',
+    nextStepAction: 'Étape Suivante',
+    prevStepAction: 'Étape Précédente',
+    currentStepBadge: 'Étape en Cours',
 
     footerCopyright: 'HeartByte · Plateforme Solidaire de Rencontres Rétro 8-Bit',
     footerProceeds: '100% des bénéfices reversés aux causes locales',

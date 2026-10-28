@@ -28,6 +28,7 @@ interface SpeedDateTableProps {
   language?: Language;
   onFinishDate: (suitorId: string, decision: PlayerDecision, finalChemistry: number, notes: string) => void;
   onSkipToNext: () => void;
+  onExitToLobby?: () => void;
 }
 
 export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
@@ -38,6 +39,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   language = 'fr',
   onFinishDate,
   onSkipToNext,
+  onExitToLobby,
 }) => {
   const [currentRoundIdx, setCurrentRoundIdx] = useState<number>(0);
   const [chemistry, setChemistry] = useState<number>(suitor.initialChemistry);
@@ -331,12 +333,25 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
             </span>
           </div>
-          <button
-            onClick={onSkipToNext}
-            className="text-[11px] font-retro text-slate-400 hover:text-slate-200 ml-2 underline underline-offset-2 p-1"
-          >
-            {t.skipDate}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onSkipToNext}
+              className="text-[11px] font-retro text-slate-400 hover:text-slate-200 underline underline-offset-2 p-1"
+            >
+              {t.skipDate}
+            </button>
+            {onExitToLobby && (
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onExitToLobby();
+                }}
+                className="text-[11px] font-retro text-amber-400 hover:text-amber-300 underline underline-offset-2 p-1"
+              >
+                {t.pauseAndExitToLobby}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Live Chemistry Meter */}

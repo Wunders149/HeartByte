@@ -19,6 +19,7 @@ interface MatchMessengerProps {
   initialSuitorId?: string;
   language?: Language;
   onBackToLobby: () => void;
+  onOpenReveal?: () => void;
 }
 
 export const MatchMessenger: React.FC<MatchMessengerProps> = ({
@@ -27,6 +28,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
   initialSuitorId,
   language = 'fr',
   onBackToLobby,
+  onOpenReveal,
 }) => {
   const [selectedSuitorId, setSelectedSuitorId] = useState<string>(
     initialSuitorId || matchedSuitors[0]?.id || ''
@@ -161,12 +163,25 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
           <div className="text-xs font-retro text-cyan-400">{t.pdaMessengerTitle}</div>
           <h1 className="text-xl sm:text-2xl font-pixel text-pink-400">{t.matchChatHubTitle}</h1>
         </div>
-        <button
-          onClick={onBackToLobby}
-          className="min-h-[40px] px-3.5 py-1.5 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg transition-colors self-start sm:self-auto"
-        >
-          {language === 'fr' ? '← Retour au Salon' : '← Back to Lobby'}
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {onOpenReveal && (
+            <button
+              onClick={() => {
+                audio.playSelect();
+                onOpenReveal();
+              }}
+              className="min-h-[40px] px-3.5 py-1.5 border border-pink-500/40 bg-pink-950/40 hover:bg-pink-900/50 text-xs font-retro text-pink-300 rounded-lg transition-colors"
+            >
+              ★ {t.backToResults}
+            </button>
+          )}
+          <button
+            onClick={onBackToLobby}
+            className="min-h-[40px] px-3.5 py-1.5 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg transition-colors"
+          >
+            {language === 'fr' ? '← Retour au Salon' : '← Back to Lobby'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-0 md:gap-6 bg-slate-950 border-2 border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[540px]">

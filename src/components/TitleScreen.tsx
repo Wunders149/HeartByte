@@ -122,6 +122,17 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           <button
             onClick={() => {
               audio.playSelect();
+              onOpenAvatarCreator();
+            }}
+            className="min-h-[48px] px-4 sm:px-5 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-purple-500/60 hover:border-purple-400 text-purple-300 font-retro text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span>{t.customizeSprite}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              audio.playSelect();
               onOpenCreateEvent();
             }}
             className="min-h-[48px] px-4 sm:px-5 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-slate-600 text-slate-200 font-retro text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-2"

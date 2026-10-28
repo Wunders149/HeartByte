@@ -13,6 +13,7 @@ interface MatchRevealScreenProps {
   language?: Language;
   onOpenMessenger: (suitorId?: string) => void;
   onResetDates: () => void;
+  onBackToLobby?: () => void;
 }
 
 export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
@@ -22,6 +23,7 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
   language = 'fr',
   onOpenMessenger,
   onResetDates,
+  onBackToLobby,
 }) => {
   const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
   const t = TRANSLATIONS[language];
@@ -177,16 +179,30 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
 
       {/* Footer Navigation Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-6 border-t border-slate-800">
-        <button
-          onClick={() => {
-            audio.playSelect();
-            onResetDates();
-          }}
-          className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-95"
-        >
-          <RotateCcw className="w-4 h-4 text-cyan-400" />
-          <span>{t.speedDateAgainReset}</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+          {onBackToLobby && (
+            <button
+              onClick={() => {
+                audio.playSelect();
+                onBackToLobby();
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-95"
+            >
+              <span>{t.backToLobbyWithoutReset}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              audio.playSelect();
+              onResetDates();
+            }}
+            className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-400 hover:text-slate-200 rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-95"
+          >
+            <RotateCcw className="w-4 h-4 text-cyan-400" />
+            <span>{t.speedDateAgainReset}</span>
+          </button>
+        </div>
 
         <button
           onClick={() => {

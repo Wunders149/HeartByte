@@ -474,18 +474,20 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
           )}
 
           {/* Action Footer */}
-          <div className="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-retro">
-              Press Start when ready
+          <div className="mt-8 pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs text-slate-400 font-retro">
+              {language === 'fr' 
+                ? '★ Étape 02/06 complétée · Profil prêt pour les rencontres' 
+                : '★ Stage 02/06 complete · Profile ready for speed dating'}
             </span>
             <button
               onClick={() => {
                 handleSave();
                 onStartDating();
               }}
-              className="px-6 py-2.5 text-xs font-pixel text-slate-950 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 rounded shadow-lg active:translate-y-0.5 transition-all"
+              className="w-full sm:w-auto px-6 py-2.5 text-xs font-pixel text-slate-950 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 rounded shadow-lg active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
             >
-              Enter Dating Lobby →
+              <span>{language === 'fr' ? 'Étape Suivante : Entrer dans le Salon →' : 'Next Step: Enter Lounge →'}</span>
             </button>
           </div>
         </div>
