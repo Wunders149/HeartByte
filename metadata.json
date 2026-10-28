@@ -1,0 +1,6 @@
+{
+  "name": "HeartByte: 8-Bit Speed Dating",
+  "description": "Retro pixel arcade speed dating simulator featuring customizable 8-bit avatars, synthesized chiptune sound effects, real-time chemistry dialogue trees, and nostalgic matchmaking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
