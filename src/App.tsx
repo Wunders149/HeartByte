@@ -81,9 +81,10 @@ export default function App() {
   const [datingQueue, setDatingQueue] = useState<string[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
   
-  // Language state ('en' or 'fr')
+  // Language state ('en' or 'fr') - defaults to French 'fr'
   const [language, setLanguage] = useState<Language>(() => {
-    return (localStorage.getItem('heartbyte_lang') as Language) || 'en';
+    const saved = localStorage.getItem('heartbyte_lang') as Language;
+    return saved === 'en' ? 'en' : 'fr';
   });
 
   // Retro Display & Audio Settings
@@ -411,6 +412,7 @@ export default function App() {
             events={events}
             registrations={registrations}
             activeEventId={activeEventId}
+            language={language}
             onSelectEvent={id => setActiveEventId(id)}
             onOpenCreateEvent={() => setIsCreateModalOpen(true)}
             onOpenRegister={evt => openRegisterModalFor(evt)}
@@ -428,6 +430,7 @@ export default function App() {
             results={results}
             registrations={registrations}
             playerProfile={playerProfile}
+            language={language}
             onStartDateWith={handleStartDateWith}
             onStartFullEvent={handleStartFullEvent}
             onOpenAvatarCreator={() => setScreen('AVATAR_CREATOR')}
@@ -444,6 +447,7 @@ export default function App() {
         {screen === 'AVATAR_CREATOR' && (
           <AvatarCreator
             profile={playerProfile}
+            language={language}
             onSaveProfile={setPlayerProfile}
             onStartDating={() => setScreen('EVENT_LOBBY')}
           />
@@ -455,6 +459,7 @@ export default function App() {
             playerProfile={playerProfile}
             dateNumber={currentQueueIndex + 1}
             totalDates={datingQueue.length || 1}
+            language={language}
             onFinishDate={handleFinishDate}
             onSkipToNext={handleSkipDate}
           />
@@ -465,6 +470,7 @@ export default function App() {
             results={results}
             suitors={SUITORS_DATA}
             playerProfile={playerProfile}
+            language={language}
             onOpenMessenger={suitorId => {
               if (suitorId) setActiveSuitorId(suitorId);
               setScreen('MATCH_MESSENGER');
@@ -478,6 +484,7 @@ export default function App() {
             matchedSuitors={matchedSuitors}
             playerProfile={playerProfile}
             initialSuitorId={activeSuitorId}
+            language={language}
             onBackToLobby={() => setScreen('EVENT_LOBBY')}
           />
         )}
@@ -489,6 +496,7 @@ export default function App() {
           event={registerTargetEvent}
           playerProfile={playerProfile}
           isOpen={isRegisterModalOpen}
+          language={language}
           onClose={() => {
             setIsRegisterModalOpen(false);
             setRegisterTargetEvent(null);
@@ -500,6 +508,7 @@ export default function App() {
       {/* Event Creator Modal */}
       <EventCreatorModal
         isOpen={isCreateModalOpen}
+        language={language}
         onClose={() => setIsCreateModalOpen(false)}
         onCreateEvent={handleCreateEvent}
       />

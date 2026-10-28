@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CommunityEvent, EventRegistration, EventStatus, CauseCategory, Suitor, DateResult } from '../types/dating';
 import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { 
   ShieldCheck, 
   Building2, 
@@ -30,6 +31,7 @@ interface AdminDashboardProps {
   registrations: EventRegistration[];
   suitors: Suitor[];
   dateResults: DateResult[];
+  language?: Language;
   onUpdateEvent: (updatedEvent: CommunityEvent) => void;
   onDeleteEvent: (eventId: string) => void;
   onOpenCreateEvent: () => void;
@@ -44,6 +46,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   registrations,
   suitors,
   dateResults,
+  language = 'fr',
   onUpdateEvent,
   onDeleteEvent,
   onOpenCreateEvent,
@@ -55,6 +58,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<'events' | 'attendees' | 'speeddating' | 'analytics'>('events');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEventFilter, setSelectedEventFilter] = useState<string>('all');
+  const t = TRANSLATIONS[language];
   
   // Event Editing Modal / Drawer State
   const [editingEvent, setEditingEvent] = useState<CommunityEvent | null>(null);

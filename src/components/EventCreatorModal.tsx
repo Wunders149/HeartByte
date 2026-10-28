@@ -2,45 +2,53 @@ import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { CommunityEvent, CauseCategory, TicketTier } from '../types/dating';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { X, Plus, Sparkles, Building2, Calendar, MapPin, Target, DollarSign } from 'lucide-react';
 
 interface EventCreatorModalProps {
   isOpen: boolean;
+  language?: Language;
   onClose: () => void;
   onCreateEvent: (event: CommunityEvent) => void;
 }
 
 export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
   isOpen,
+  language = 'fr',
   onClose,
   onCreateEvent,
 }) => {
+  const t = TRANSLATIONS[language];
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [beneficiaryName, setBeneficiaryName] = useState('');
   const [causeCategory, setCauseCategory] = useState<CauseCategory>('community');
   const [fundraisingGoal, setFundraisingGoal] = useState<number>(2500);
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('Saturday, December 12, 2026');
-  const [time, setTime] = useState('7:00 PM - 10:00 PM');
-  const [venueName, setVenueName] = useState('Community Social Hall & Retro Lounge');
-  const [venueAddress, setVenueAddress] = useState('100 Community Plaza');
+  const [date, setDate] = useState(language === 'fr' ? 'Samedi 12 Décembre 2026' : 'Saturday, December 12, 2026');
+  const [time, setTime] = useState(language === 'fr' ? '19h00 - 22h00' : '7:00 PM - 10:00 PM');
+  const [venueName, setVenueName] = useState(language === 'fr' ? 'Salle Communautaire & Espace Rétro' : 'Community Social Hall & Retro Lounge');
+  const [venueAddress, setVenueAddress] = useState(language === 'fr' ? '100 Place de la Communauté' : '100 Community Plaza');
   const [maxCapacity, setMaxCapacity] = useState<number>(36);
   const [creatorName, setCreatorName] = useState('');
-  const [customCausePrompt, setCustomCausePrompt] = useState('What community dream would you love to build together with a partner?');
+  const [customCausePrompt, setCustomCausePrompt] = useState(
+    language === 'fr'
+      ? 'Quel projet solidaire aimeriez-vous co-construire à deux ?'
+      : 'What community dream would you love to build together with a partner?'
+  );
 
   // Ticket Tiers
-  const [tier1Name, setTier1Name] = useState('Supporter Ticket');
+  const [tier1Name, setTier1Name] = useState(language === 'fr' ? 'Billet Solidaire' : 'Supporter Ticket');
   const [tier1Price, setTier1Price] = useState<number>(15);
-  const [tier1Perks, setTier1Perks] = useState('Speed dating entry + 1 complimentary drink + event badge');
+  const [tier1Perks, setTier1Perks] = useState(language === 'fr' ? 'Entrée speed dating + 1 boisson offerte + badge souvenir' : 'Speed dating entry + 1 complimentary drink + event badge');
 
-  const [tier2Name, setTier2Name] = useState('Patron Pass');
+  const [tier2Name, setTier2Name] = useState(language === 'fr' ? 'Pass Mécène' : 'Patron Pass');
   const [tier2Price, setTier2Price] = useState<number>(35);
-  const [tier2Perks, setTier2Perks] = useState('Entry + 2 drinks + community tote bag + Super Like perk');
+  const [tier2Perks, setTier2Perks] = useState(language === 'fr' ? 'Entrée + 2 boissons + tote bag communautaire + boost Super-Like' : 'Entry + 2 drinks + community tote bag + Super Like perk');
 
-  const [tier3Name, setTier3Name] = useState('Community Champion');
+  const [tier3Name, setTier3Name] = useState(language === 'fr' ? 'Champion Communautaire' : 'Community Champion');
   const [tier3Price, setTier3Price] = useState<number>(75);
-  const [tier3Perks, setTier3Perks] = useState('VIP reserved table + sponsor shoutout + lifetime pass to next year event');
+  const [tier3Perks, setTier3Perks] = useState(language === 'fr' ? 'Table VIP réservée + mention d’honneur + invitation permanente an prochain' : 'VIP reserved table + sponsor shoutout + lifetime pass to next year event');
 
   if (!isOpen) return null;
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Suitor, PlayerProfile } from '../types/dating';
 import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Send, MapPin, Calendar, Heart, CheckCircle2 } from 'lucide-react';
 
 interface ChatMessage {
@@ -16,6 +17,7 @@ interface MatchMessengerProps {
   matchedSuitors: Suitor[];
   playerProfile: PlayerProfile;
   initialSuitorId?: string;
+  language?: Language;
   onBackToLobby: () => void;
 }
 
@@ -23,6 +25,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
   matchedSuitors,
   playerProfile,
   initialSuitorId,
+  language = 'fr',
   onBackToLobby,
 }) => {
   const [selectedSuitorId, setSelectedSuitorId] = useState<string>(
@@ -31,6 +34,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
   const [mobilePane, setMobilePane] = useState<'list' | 'chat'>('chat');
   const [inputMessage, setInputMessage] = useState<string>('');
   const [dateAcceptedMap, setDateAcceptedMap] = useState<Record<string, boolean>>({});
+  const t = TRANSLATIONS[language];
 
   // Suitor conversations store
   const [conversations, setConversations] = useState<Record<string, ChatMessage[]>>(() => {
@@ -40,14 +44,18 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
         {
           id: '1',
           sender: 'suitor',
-          text: `Hey ${playerProfile.name || 'there'}! I had so much fun at our speed dating table earlier. Your vibe was totally 10/10!`,
-          timestamp: 'Just now'
+          text: language === 'fr'
+            ? `Coucou ${playerProfile.name || ''} ! J'ai tellement apprécié notre speed dating tout à l'heure. Ton énergie était 10/10 !`
+            : `Hey ${playerProfile.name || 'there'}! I had so much fun at our speed dating table earlier. Your vibe was totally 10/10!`,
+          timestamp: language === 'fr' ? 'À l’instant' : 'Just now'
         },
         {
           id: '2',
           sender: 'suitor',
-          text: `I was wondering... would you want to go on Date #2 with me at ${s.inviteDateLocation}? We could do ${s.secondDateActivity}!`,
-          timestamp: 'Just now',
+          text: language === 'fr'
+            ? `Je me demandais... est-ce que tu aimerais faire un 2e rendez-vous avec moi à ${s.inviteDateLocation} ? On pourrait faire : ${s.secondDateActivity} !`
+            : `I was wondering... would you want to go on Date #2 with me at ${s.inviteDateLocation}? We could do ${s.secondDateActivity}!`,
+          timestamp: language === 'fr' ? 'À l’instant' : 'Just now',
           isDateInvite: true
         }
       ];
@@ -125,15 +133,17 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
       <div className="max-w-2xl mx-auto py-12 sm:py-16 px-4 text-center">
         <div className="p-6 sm:p-8 bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-xl">
           <Heart className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <h2 className="text-xl font-pixel text-pink-400 mb-2">No Matches Yet</h2>
+          <h2 className="text-xl font-pixel text-pink-400 mb-2">{language === 'fr' ? 'Aucun Match pour l’Instant' : 'No Matches Yet'}</h2>
           <p className="text-xs md:text-sm text-slate-300 font-retro mb-6">
-            You haven’t completed any speed dating rounds or mutual matches yet. Go to the Speed Dating table to meet suitors!
+            {language === 'fr'
+              ? 'Vous n’avez pas encore de correspondances mutuelles. Participez aux tables de speed dating pour rencontrer les participants !'
+              : 'You haven’t completed any speed dating rounds or mutual matches yet. Go to the Speed Dating table to meet suitors!'}
           </p>
           <button
             onClick={onBackToLobby}
             className="min-h-[44px] px-6 py-2.5 bg-pink-500 hover:bg-pink-400 font-pixel text-xs text-slate-950 rounded-lg shadow-md transition-all active:translate-y-0.5"
           >
-            Start Speed Dating →
+            {t.startSpeedDating} →
           </button>
         </div>
       </div>
@@ -148,14 +158,14 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
       {/* Title & Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
         <div>
-          <div className="text-xs font-retro text-cyan-400">8-BIT PDA MESSENGER</div>
-          <h1 className="text-xl sm:text-2xl font-pixel text-pink-400">Match Chat & Date Hub</h1>
+          <div className="text-xs font-retro text-cyan-400">{t.pdaMessengerTitle}</div>
+          <h1 className="text-xl sm:text-2xl font-pixel text-pink-400">{t.matchChatHubTitle}</h1>
         </div>
         <button
           onClick={onBackToLobby}
           className="min-h-[40px] px-3.5 py-1.5 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg transition-colors self-start sm:self-auto"
         >
-          ← Back to Lobby
+          {language === 'fr' ? '← Retour au Salon' : '← Back to Lobby'}
         </button>
       </div>
 
@@ -165,7 +175,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
           mobilePane === 'chat' ? 'hidden md:block' : 'block'
         }`}>
           <div className="text-[11px] font-pixel text-slate-400 mb-3 uppercase tracking-wider flex items-center justify-between">
-            <span>Your Matches ({matchedSuitors.length})</span>
+            <span>{t.yourMatchesCount} ({matchedSuitors.length})</span>
           </div>
 
           <div className="space-y-2">
@@ -221,7 +231,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                     onClick={() => setMobilePane('list')}
                     className="md:hidden min-h-[40px] px-2.5 py-1 text-xs font-retro text-cyan-400 hover:text-cyan-300 rounded border border-slate-800 bg-slate-900 flex items-center gap-1"
                   >
-                    ← Matches
+                    ← {t.navMatches}
                   </button>
                   <PixelAvatar avatar={activeSuitor.avatar} size="xs" />
                   <div>
@@ -259,20 +269,20 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                         <div className="mt-3 p-3 bg-slate-950/80 border border-pink-500/40 rounded-lg">
                           <div className="flex items-center gap-1.5 text-xs font-pixel text-pink-400 mb-1">
                             <Calendar className="w-3.5 h-3.5 text-yellow-400" />
-                            <span>DATE #2 INVITATION</span>
+                            <span>{t.date2InvitationTitle}</span>
                           </div>
                           <div className="text-xs font-retro text-slate-300">
-                            <strong>Location:</strong> {activeSuitor.inviteDateLocation}
+                            <strong>{t.locationLabel}</strong> {activeSuitor.inviteDateLocation}
                           </div>
                           <div className="text-xs font-retro text-slate-300 mt-0.5">
-                            <strong>Activity:</strong> {activeSuitor.secondDateActivity}
+                            <strong>{t.activityLabel}</strong> {activeSuitor.secondDateActivity}
                           </div>
 
                           <div className="mt-3">
                             {isDateAccepted ? (
                               <div className="flex items-center gap-1.5 text-xs font-pixel text-emerald-400">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                <span>DATE SCHEDULED! ♥</span>
+                                <span>{t.dateScheduledBadge}</span>
                               </div>
                             ) : (
                               <button
@@ -280,7 +290,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                                 className="w-full py-2 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded transition-all shadow active:translate-y-0.5 flex items-center justify-center gap-1.5"
                               >
                                 <Heart className="w-3.5 h-3.5 fill-slate-950" />
-                                <span>ACCEPT DATE #2!</span>
+                                <span>{t.acceptDate2Btn}</span>
                               </button>
                             )}
                           </div>
@@ -300,7 +310,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                   type="text"
                   value={inputMessage}
                   onChange={e => setInputMessage(e.target.value)}
-                  placeholder={`Send a retro message to ${activeSuitor.name}...`}
+                  placeholder={language === 'fr' ? `Envoyer un message rétro à ${activeSuitor.name}...` : `Send a retro message to ${activeSuitor.name}...`}
                   className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs md:text-sm font-retro text-slate-100 focus:outline-none focus:border-pink-500 placeholder:text-slate-600"
                 />
                 <button
@@ -309,13 +319,13 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                   className="px-4 py-2.5 bg-pink-500 hover:bg-pink-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-pixel text-xs rounded-lg flex items-center gap-1.5 transition-all shadow"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Send</span>
+                  <span className="hidden sm:inline">{t.sendBtn}</span>
                 </button>
               </form>
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-slate-500 font-retro">
-              Select a match to start chatting
+              {language === 'fr' ? 'Sélectionnez un match pour discuter' : 'Select a match to start chatting'}
             </div>
           )}
         </div>

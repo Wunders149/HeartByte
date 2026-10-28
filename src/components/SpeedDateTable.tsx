@@ -2,13 +2,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Suitor, Expression, PlayerDecision, DialogueChoice, PlayerProfile } from '../types/dating';
 import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Heart, X, Star, Clock, Sparkles, MessageSquare, Flame } from 'lucide-react';
+
+interface FloatingHeartParticle {
+  id: number;
+  x: number;
+  bottom: number;
+  size: number;
+  rotation: number;
+  driftX: number;
+  color: string;
+  fillColor?: string;
+  duration: number;
+  delay: number;
+  type: 'heart' | 'star' | 'sparkle';
+  scale: number;
+}
 
 interface SpeedDateTableProps {
   suitor: Suitor;
   playerProfile: PlayerProfile;
   dateNumber: number;
   totalDates: number;
+  language?: Language;
   onFinishDate: (suitorId: string, decision: PlayerDecision, finalChemistry: number, notes: string) => void;
   onSkipToNext: () => void;
 }
@@ -18,6 +35,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   playerProfile,
   dateNumber,
   totalDates,
+  language = 'fr',
   onFinishDate,
   onSkipToNext,
 }) => {
@@ -28,6 +46,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   const [isTyping, setIsTyping] = useState<boolean>(true);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
   const [showMinigame, setShowMinigame] = useState<boolean>(false);
+  const t = TRANSLATIONS[language];
   const [minigameCompleted, setMinigameCompleted] = useState<boolean>(false);
   const [minigameScale, setMinigameScale] = useState<number>(1);
   const [minigameFeedback, setMinigameFeedback] = useState<string | null>(null);
@@ -35,9 +54,24 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   const [dateState, setDateState] = useState<'dating' | 'verdict'>('dating');
   const [playerNotes, setPlayerNotes] = useState<string>('');
   const [timeLeft, setTimeLeft] = useState<number>(45); // 45s timer for snappy speed dating
+  
+  // Heart-float animation overlay state
+  const [heartParticles, setHeartParticles] = useState<FloatingHeartParticle[]>([]);
+  const [activeVerdictType, setActiveVerdictType] = useState<'like' | 'superlike' | null>(null);
+  const [isCastingVerdict, setIsCastingVerdict] = useState<boolean>(false);
+  const verdictTimeoutRef = useRef<number | null>(null);
 
   const currentRound = suitor.rounds[currentRoundIdx] || suitor.rounds[0];
   const typingTimerRef = useRef<number | null>(null);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (verdictTimeoutRef.current) {
+        window.clearTimeout(verdictTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Typewriter effect for suitor speech
   useEffect(() => {
@@ -190,16 +224,90 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
     }, 1500);
   };
 
+  /**
+   * Triggers a 'heart-float' animation overlay whenever a user clicks
+   * the 'like' or 'superlike' decision buttons.
+   */
+  const triggerHeartFloat = (decision: 'like' | 'superlike', onComplete?: () => void) => {
+    const isSuperLike = decision === 'superlike';
+    const count = isSuperLike ? 36 : 24;
+
+    const colors = isSuperLike
+      ? ['#facc15', '#fbbf24', '#f59e0b', '#ec4899', '#f43f5e', '#ffffff', '#e0e7ff', '#a855f7']
+      : ['#ec4899', '#f43f5e', '#fb7185', '#fda4af', '#ff1493', '#ff69b4', '#ffffff'];
+
+    const newParticles: FloatingHeartParticle[] = Array.from({ length: count }, (_, i) => {
+      const x = Math.random() * 88 + 6; // 6% to 94% horizontal span across table
+      const bottom = Math.random() * 22 + 6; // 6% to 28% from bottom (around decision buttons)
+      const size = Math.floor(Math.random() * (isSuperLike ? 26 : 20)) + (isSuperLike ? 18 : 16);
+      const delay = Math.random() * 400; // staggered delay in ms
+      const duration = Math.random() * 700 + 1100; // 1100ms to 1800ms
+      const driftX = (Math.random() - 0.5) * 180; // -90px to +90px horizontal drift
+      const rotation = (Math.random() - 0.5) * 60; // -30deg to +30deg tilt
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const scale = Math.random() * 0.4 + 0.85;
+
+      let particleType: 'heart' | 'star' | 'sparkle' = 'heart';
+      if (isSuperLike) {
+        particleType = i % 3 === 0 ? 'star' : i % 3 === 1 ? 'heart' : 'sparkle';
+      } else {
+        particleType = i % 6 === 0 ? 'sparkle' : 'heart';
+      }
+
+      return {
+        id: Date.now() + i + Math.random(),
+        x,
+        bottom,
+        size,
+        rotation,
+        driftX,
+        color,
+        fillColor: particleType === 'sparkle' ? 'none' : color,
+        duration,
+        delay,
+        type: particleType,
+        scale
+      };
+    });
+
+    setHeartParticles(newParticles);
+    setActiveVerdictType(decision);
+    setIsCastingVerdict(true);
+
+    if (verdictTimeoutRef.current) {
+      window.clearTimeout(verdictTimeoutRef.current);
+    }
+
+    // Allow the heart-float animation overlay to play before finishing date
+    verdictTimeoutRef.current = window.setTimeout(() => {
+      setHeartParticles([]);
+      setActiveVerdictType(null);
+      setIsCastingVerdict(false);
+      if (onComplete) {
+        onComplete();
+      }
+    }, 1250);
+  };
+
   const handleCastVerdict = (decision: PlayerDecision) => {
+    if (isCastingVerdict) return;
+
     if (decision === 'superlike') {
       audio.playSuperLike();
+      triggerHeartFloat('superlike', () => {
+        onFinishDate(suitor.id, decision, chemistry, playerNotes);
+      });
     } else if (decision === 'like') {
       audio.playMatchFanfare();
+      triggerHeartFloat('like', () => {
+        onFinishDate(suitor.id, decision, chemistry, playerNotes);
+      });
     } else {
       audio.playPass();
+      onFinishDate(suitor.id, decision, chemistry, playerNotes);
     }
-    onFinishDate(suitor.id, decision, chemistry, playerNotes);
   };
+
 
   return (
     <div className="max-w-5xl mx-auto py-4 sm:py-6 px-3 sm:px-4">
@@ -208,10 +316,10 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
         {/* Date Round Counter */}
         <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3">
           <div className="px-2 sm:px-2.5 py-1 bg-pink-950/60 border border-pink-500/40 rounded text-pink-300 font-pixel text-[11px] sm:text-xs">
-            ROUND {dateNumber}/{totalDates}
+            {t.roundLabel} {dateNumber}/{totalDates}
           </div>
           <div className="text-xs font-retro text-slate-300">
-            Speed Date with <span className="text-pink-400 font-bold">{suitor.name}</span>
+            {t.speedDateWith} <span className="text-pink-400 font-bold">{suitor.name}</span>
           </div>
         </div>
 
@@ -227,7 +335,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
             onClick={onSkipToNext}
             className="text-[11px] font-retro text-slate-400 hover:text-slate-200 ml-2 underline underline-offset-2 p-1"
           >
-            Skip Date
+            {t.skipDate}
           </button>
         </div>
 
@@ -253,6 +361,95 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
         <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Dynamic 'Heart-Float' Animation Overlay (triggered on 'like' or 'superlike') */}
+        {heartParticles.length > 0 && (
+          <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden select-none">
+            {/* Ambient Flash Tint */}
+            <div
+              className={`absolute inset-0 transition-opacity duration-300 pointer-events-none ${
+                activeVerdictType === 'superlike'
+                  ? 'bg-amber-400/15'
+                  : 'bg-pink-500/15'
+              }`}
+            />
+
+            {/* Central Celebration Announcement Pop-Badge */}
+            {activeVerdictType && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center animate-pop-badge pointer-events-none px-4">
+                <div
+                  className={`px-5 py-3.5 sm:px-6 sm:py-4 rounded-xl border-2 font-pixel text-xs sm:text-sm tracking-wide shadow-2xl flex items-center justify-center gap-2.5 sm:gap-3 backdrop-blur-md ${
+                    activeVerdictType === 'superlike'
+                      ? 'bg-amber-950/95 border-yellow-300 text-yellow-300 shadow-yellow-500/40 ring-4 ring-yellow-400/20'
+                      : 'bg-pink-950/95 border-pink-400 text-pink-200 shadow-pink-500/40 ring-4 ring-pink-400/20'
+                  }`}
+                >
+                  {activeVerdictType === 'superlike' ? (
+                    <>
+                      <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-yellow-300 text-yellow-300 animate-spin shrink-0" style={{ animationDuration: '3s' }} />
+                      <span className="font-bold">{language === 'fr' ? '★ SUPER-LIKE ENVOYÉ ! ★' : '★ SUPER-LIKE SENT! ★'}</span>
+                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-200 animate-pulse shrink-0" />
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-pink-400 text-pink-400 animate-bounce shrink-0" />
+                      <span className="font-bold">{language === 'fr' ? '♥ COUP DE CŒUR ENVOYÉ ! ♥' : '♥ LIKE SENT! ♥'}</span>
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-pink-400 text-pink-400 animate-bounce shrink-0" />
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Floating Hearts & Stars Particles */}
+            {heartParticles.map(particle => (
+              <div
+                key={particle.id}
+                className="absolute animate-float-burst-heart flex items-center justify-center pointer-events-none"
+                style={{
+                  left: `${particle.x}%`,
+                  bottom: `${particle.bottom}%`,
+                  '--dur': `${particle.duration}ms`,
+                  '--drift': `${particle.driftX}px`,
+                  '--rot': `${particle.rotation}deg`,
+                  '--sc': particle.scale,
+                  animationDelay: `${particle.delay}ms`,
+                } as React.CSSProperties}
+              >
+                {particle.type === 'heart' ? (
+                  <Heart
+                    style={{
+                      width: `${particle.size}px`,
+                      height: `${particle.size}px`,
+                      color: particle.color,
+                      fill: particle.fillColor,
+                      filter: `drop-shadow(0 0 6px ${particle.color})`,
+                    }}
+                  />
+                ) : particle.type === 'star' ? (
+                  <Star
+                    style={{
+                      width: `${particle.size}px`,
+                      height: `${particle.size}px`,
+                      color: particle.color,
+                      fill: particle.fillColor,
+                      filter: `drop-shadow(0 0 8px ${particle.color})`,
+                    }}
+                  />
+                ) : (
+                  <Sparkles
+                    style={{
+                      width: `${particle.size}px`,
+                      height: `${particle.size}px`,
+                      color: particle.color,
+                      filter: `drop-shadow(0 0 6px ${particle.color})`,
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Floating Chemistry Delta Notification */}
         {floatingDelta && (
           <div
@@ -261,19 +458,19 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               floatingDelta.value > 0 ? 'text-pink-400' : 'text-slate-400'
             }`}
           >
-            {floatingDelta.value > 0 ? `+${floatingDelta.value} ♥ CHEMISTRY!` : `${floatingDelta.value} 💔 AWKWARD...`}
+            {floatingDelta.value > 0 ? `+${floatingDelta.value} ♥ ${language === 'fr' ? 'ALCHIMIE !' : 'CHEMISTRY!'}` : `${floatingDelta.value} 💔 ${language === 'fr' ? 'GÊNANT...' : 'AWKWARD...'}`}
           </div>
         )}
 
         {/* Interactive Mid-Date Heart Sync Minigame Overlay */}
         {showMinigame && (
           <div className="absolute inset-0 z-40 bg-slate-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-6 text-center animate-fade-in">
-            <div className="text-xs font-retro text-cyan-400 mb-2">QUICK-TIME VIBE CHECK!</div>
+            <div className="text-xs font-retro text-cyan-400 mb-2">{t.quickTimeCheck}</div>
             <h3 className="text-base sm:text-lg md:text-xl font-pixel text-pink-400 mb-4 sm:mb-6">
-              Lock Eyes & Sync Hearts!
+              {t.lockEyesTitle}
             </h3>
             <p className="text-xs text-slate-300 font-retro max-w-sm mb-6 sm:mb-8">
-              Click the button right when the pulsing heart aligns with the target ring!
+              {t.lockEyesDesc}
             </p>
 
             {/* Target Ring & Pulsing Heart */}
@@ -298,7 +495,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
                 onClick={handleMinigameClick}
                 className="min-h-[44px] px-6 sm:px-8 py-3 bg-pink-500 hover:bg-pink-400 active:scale-95 font-pixel text-xs text-slate-950 rounded-lg shadow-lg transition-transform"
               >
-                SYNC NOW! (SPACE/CLICK)
+                {t.syncNowBtn}
               </button>
             )}
           </div>
@@ -354,21 +551,21 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               <div className="pixel-box-pink p-3.5 sm:p-5 rounded-lg mb-4 sm:mb-6 relative">
                 <div className="text-[10px] font-pixel text-pink-400 mb-1.5 sm:mb-2 flex items-center gap-1.5">
                   <MessageSquare className="w-3 h-3" />
-                  <span>{suitor.name.toUpperCase()} SAYS:</span>
+                  <span>{suitor.name.toUpperCase()} {t.saysPrefix}</span>
                 </div>
                 <p className="text-xs sm:text-sm md:text-base font-retro text-slate-100 leading-relaxed min-h-[56px] sm:min-h-[72px]">
                   {spokenText}
                   {isTyping && <span className="inline-block w-2 h-4 bg-pink-400 ml-1 animate-blink" />}
                 </p>
                 <div className="text-[10px] font-retro text-slate-500 text-right mt-1.5">
-                  Round {currentRoundIdx + 1} of 3
+                  {language === 'fr' ? `Manche ${currentRoundIdx + 1} sur 3` : `Round ${currentRoundIdx + 1} of 3`}
                 </div>
               </div>
 
               {/* Player Dialogue Options */}
               <div className="space-y-2.5 sm:space-y-3">
                 <div className="text-[10px] font-pixel text-cyan-400 tracking-wider">
-                  SELECT YOUR RESPONSE:
+                  {t.selectResponsePrompt}
                 </div>
 
                 {currentRound.choices.map((choice, idx) => {
@@ -401,9 +598,9 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
         ) : (
           /* Speed Date Verdict & PDA Scoring Phase */
           <div className="relative z-10 max-w-xl mx-auto text-center py-2 sm:py-4">
-            <div className="text-xs font-retro text-yellow-400 mb-1.5">ROUND CONCLUDED</div>
+            <div className="text-xs font-retro text-yellow-400 mb-1.5">{t.roundConcludedTitle}</div>
             <h2 className="text-xl sm:text-2xl font-pixel text-pink-400 mb-3 sm:mb-4">
-              Speed Date Verdict
+              {t.verdictTitle}
             </h2>
 
             <div className="flex items-center justify-center gap-4 sm:gap-6 my-4 sm:my-6">
@@ -414,7 +611,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
 
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-6 text-left">
               <div className="flex justify-between items-center mb-1.5 sm:mb-2">
-                <span className="text-xs font-retro text-slate-400">Final Chemistry Score</span>
+                <span className="text-xs font-retro text-slate-400">{t.finalChemistryScore}</span>
                 <span className="font-pixel text-xs sm:text-sm text-pink-400">{chemistry}%</span>
               </div>
               <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden mb-3 sm:mb-4">
@@ -426,20 +623,22 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
 
               {/* Private Notes Pad */}
               <label className="block text-[11px] font-pixel text-slate-400 mb-1.5">
-                PDA Notes on {suitor.name} (Optional):
+                {language === 'fr' ? `Notes PDA sur ${suitor.name} (Optionnel) :` : `PDA Notes on ${suitor.name} (Optional):`}
               </label>
               <input
                 type="text"
                 value={playerNotes}
                 onChange={e => setPlayerNotes(e.target.value)}
-                placeholder="e.g. Loves late night ramen, very cute laugh, wants to co-op..."
+                placeholder={t.pdaNotesPlaceholder}
                 className="w-full min-h-[42px] bg-slate-950 border border-slate-700 rounded px-3 py-2 text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500"
                 maxLength={80}
               />
             </div>
 
             <p className="text-xs font-retro text-slate-300 mb-5 sm:mb-6 px-2">
-              Would you like to match with {suitor.name}? Both parties must say YES to reveal mutual contact!
+              {language === 'fr'
+                ? `Souhaitez-vous matcher avec ${suitor.name} ? Il faut un vote mutuel positif pour dévoiler vos contacts !`
+                : `Would you like to match with ${suitor.name}? Both parties must say YES to reveal mutual contact!`}
             </p>
 
             {/* Verdict Action Buttons with mobile thumb zone targets */}
@@ -447,28 +646,45 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               {/* Pass */}
               <button
                 onClick={() => handleCastVerdict('pass')}
-                className="min-h-[50px] py-3 px-3 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-slate-600 rounded-lg font-pixel text-xs text-slate-300 flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5"
+                disabled={isCastingVerdict}
+                className={`min-h-[50px] py-3 px-3 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-slate-600 rounded-lg font-pixel text-xs text-slate-300 flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5 ${
+                  isCastingVerdict ? 'opacity-40 cursor-not-allowed' : ''
+                }`}
               >
                 <X className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>Pass</span>
+                <span>{t.passBtn}</span>
               </button>
 
-              {/* Like */}
+              {/* Like (Coup de Cœur) - triggers heart-float animation */}
               <button
                 onClick={() => handleCastVerdict('like')}
-                className="min-h-[50px] py-3 px-3 bg-pink-600 hover:bg-pink-500 border-2 border-pink-400 rounded-lg font-pixel text-xs text-white shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5"
+                disabled={isCastingVerdict}
+                className={`min-h-[50px] py-3 px-3 border-2 rounded-lg font-pixel text-xs text-white shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5 ${
+                  activeVerdictType === 'like'
+                    ? 'bg-pink-500 border-pink-300 ring-4 ring-pink-500/50 scale-105 shadow-pink-500/50'
+                    : isCastingVerdict
+                    ? 'bg-pink-800/50 border-pink-700/60 opacity-50 cursor-not-allowed'
+                    : 'bg-pink-600 hover:bg-pink-500 border-pink-400 hover:shadow-pink-500/30'
+                }`}
               >
-                <Heart className="w-5 h-5 fill-white text-white shrink-0" />
-                <span>Like ♥</span>
+                <Heart className={`w-5 h-5 fill-white text-white shrink-0 ${activeVerdictType === 'like' ? 'animate-bounce' : ''}`} />
+                <span>{t.likeBtn}</span>
               </button>
 
-              {/* Super Like */}
+              {/* Super Like - triggers supercharged heart-float & golden star animation */}
               <button
                 onClick={() => handleCastVerdict('superlike')}
-                className="min-h-[50px] py-3 px-3 bg-gradient-to-br from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 border-2 border-yellow-200 rounded-lg font-pixel text-xs text-slate-950 shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5"
+                disabled={isCastingVerdict}
+                className={`min-h-[50px] py-3 px-3 border-2 rounded-lg font-pixel text-xs text-slate-950 shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5 ${
+                  activeVerdictType === 'superlike'
+                    ? 'bg-gradient-to-br from-yellow-300 via-amber-300 to-yellow-400 border-white ring-4 ring-yellow-400/60 scale-105 shadow-yellow-500/50'
+                    : isCastingVerdict
+                    ? 'bg-amber-700/50 border-amber-600/60 opacity-50 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 border-yellow-200 hover:shadow-yellow-500/30'
+                }`}
               >
-                <Star className="w-5 h-5 fill-slate-950 text-slate-950 shrink-0" />
-                <span>Super Like!</span>
+                <Star className={`w-5 h-5 fill-slate-950 text-slate-950 shrink-0 ${activeVerdictType === 'superlike' ? 'animate-spin' : ''}`} />
+                <span>{t.superLikeBtn}</span>
               </button>
             </div>
           </div>

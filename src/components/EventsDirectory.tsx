@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { CommunityEvent, EventRegistration, CauseCategory } from '../types/dating';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Heart, Plus, Users, Calendar, MapPin, Target, Sparkles, Building2, Flame } from 'lucide-react';
 
 interface EventsDirectoryProps {
   events: CommunityEvent[];
   registrations: EventRegistration[];
   activeEventId: string;
+  language?: Language;
   onSelectEvent: (eventId: string) => void;
   onOpenCreateEvent: () => void;
   onOpenRegister: (event: CommunityEvent) => void;
@@ -17,12 +19,14 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
   events,
   registrations,
   activeEventId,
+  language = 'fr',
   onSelectEvent,
   onOpenCreateEvent,
   onOpenRegister,
   onEnterDatingFloor,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | CauseCategory>('all');
+  const t = TRANSLATIONS[language];
 
   const filteredEvents = events.filter(e => {
     if (selectedCategory === 'all') return true;
@@ -44,33 +48,35 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
           <div className="text-center md:text-left">
             <div className="inline-flex items-center gap-2 text-xs font-retro text-cyan-400 mb-2">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>COMMUNITY FUNDRAISER DIRECTORY</span>
+              <span>{language === 'fr' ? 'RÉPERTOIRE DES SOIRÉES CARITATIVES' : 'COMMUNITY FUNDRAISER DIRECTORY'}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-pixel text-pink-400 tracking-tight text-wrap-balance">
-              Dating for a Cause
+              {t.datingForCause}
             </h1>
             <p className="text-xs md:text-sm text-slate-300 font-retro mt-2 max-w-xl">
-              Turn romantic sparks into community power! Each speed dating event raises funds directly for local neighborhood causes, shelters, and creator spaces.
+              {language === 'fr'
+                ? 'Transformez les étincelles amoureuses en force solidaire ! Chaque soirée de speed dating finance directement des projets locaux, refuges et espaces créatifs.'
+                : 'Turn romantic sparks into community power! Each speed dating event raises funds directly for local neighborhood causes, shelters, and creator spaces.'}
             </p>
 
             {/* Impact Metrics */}
             <div className="flex flex-wrap items-center gap-4 mt-5 text-xs font-retro">
               <div className="bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
-                <span className="text-slate-400 text-[10px] block">TOTAL COMMUNITY DONATIONS</span>
+                <span className="text-slate-400 text-[10px] block">{t.totalDonationsLabel}</span>
                 <span className="font-pixel text-emerald-400 text-sm">
                   ${totalRaisedOverall.toLocaleString()}
                 </span>
               </div>
               <div className="bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
-                <span className="text-slate-400 text-[10px] block">COMMUNITY DATERS REGISTERED</span>
+                <span className="text-slate-400 text-[10px] block">{t.datersRegistered}</span>
                 <span className="font-pixel text-pink-400 text-sm">
-                  {totalRegistrations} Attendees
+                  {totalRegistrations} {language === 'fr' ? 'Participants' : 'Attendees'}
                 </span>
               </div>
               <div className="bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
-                <span className="text-slate-400 text-[10px] block">ACTIVE CAUSES</span>
+                <span className="text-slate-400 text-[10px] block">{t.activeCausesCount}</span>
                 <span className="font-pixel text-cyan-400 text-sm">
-                  {events.length} Events
+                  {events.length} {language === 'fr' ? 'Événements' : 'Events'}
                 </span>
               </div>
             </div>
@@ -86,7 +92,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
               className="px-6 py-3.5 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-xl shadow-xl active:translate-y-0.5 transition-all flex items-center gap-2 group"
             >
               <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-              <span>Create Speed Dating Fundraiser</span>
+              <span>{t.createEventBtn}</span>
             </button>
           </div>
         </div>
@@ -106,7 +112,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            All Causes ({events.length})
+            {t.allCauses} ({events.length})
           </button>
           <button
             onClick={() => {
@@ -119,7 +125,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Community
+            {language === 'fr' ? 'Communauté' : 'Community'}
           </button>
           <button
             onClick={() => {
@@ -132,7 +138,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Tech & Gaming
+            {language === 'fr' ? 'Tech & Jeux' : 'Tech & Gaming'}
           </button>
           <button
             onClick={() => {
@@ -145,7 +151,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Animals & Eco
+            {language === 'fr' ? 'Animaux & Éco' : 'Animals & Eco'}
           </button>
           <button
             onClick={() => {
@@ -158,12 +164,12 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Arts & Music
+            {language === 'fr' ? 'Arts & Musique' : 'Arts & Music'}
           </button>
         </div>
 
         <div className="text-xs font-retro text-slate-400">
-          Showing {filteredEvents.length} speed dating campaigns
+          {t.showingCount} {filteredEvents.length} {language === 'fr' ? 'campagnes de speed dating' : 'speed dating campaigns'}
         </div>
       </div>
 
@@ -221,7 +227,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                       ${event.currentFundsRaised.toLocaleString()}
                     </span>
                     <span className="text-slate-400">
-                      Goal: ${event.fundraisingGoal.toLocaleString()} ({percent}%)
+                      {language === 'fr' ? 'Objectif :' : 'Goal:'} ${event.fundraisingGoal.toLocaleString()} ({percent}%)
                     </span>
                   </div>
                   <div className="h-2.5 bg-slate-950 border border-slate-800 rounded-full overflow-hidden">
@@ -231,7 +237,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                     />
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-retro text-slate-500 mt-1">
-                    <span>{eventRegs.length} community daters registered</span>
+                    <span>{eventRegs.length} {language === 'fr' ? 'participants inscrits' : 'community daters registered'}</span>
                     <span>Max {event.maxCapacity}</span>
                   </div>
                 </div>
@@ -246,7 +252,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                   }}
                   className="py-2.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-pink-400 font-pixel text-[10px] rounded-lg transition-colors text-center"
                 >
-                  Register / Donate
+                  {language === 'fr' ? "S'inscrire / Donner" : 'Register / Donate'}
                 </button>
 
                 <button
@@ -257,7 +263,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                   }}
                   className="py-2.5 px-2 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-[10px] rounded-lg transition-all shadow text-center active:translate-y-0.5"
                 >
-                  Enter Event Floor →
+                  {language === 'fr' ? 'Entrer dans la salle →' : 'Enter Event Floor →'}
                 </button>
               </div>
             </div>

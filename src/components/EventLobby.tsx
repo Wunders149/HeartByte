@@ -3,6 +3,7 @@ import { Suitor, DateResult, PlayerProfile, CommunityEvent, EventRegistration } 
 import { PixelAvatar } from './PixelAvatar';
 import { CommunityFundraiserBar } from './CommunityFundraiserBar';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Heart, Play, Users, MessageSquare, Flame, Check, HelpCircle, Ticket, ArrowLeft, Award, Sparkles } from 'lucide-react';
 
 interface EventLobbyProps {
@@ -11,6 +12,7 @@ interface EventLobbyProps {
   results: DateResult[];
   registrations: EventRegistration[];
   playerProfile: PlayerProfile;
+  language?: Language;
   onStartDateWith: (suitorId: string) => void;
   onStartFullEvent: () => void;
   onOpenAvatarCreator: () => void;
@@ -26,6 +28,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
   results,
   registrations,
   playerProfile,
+  language = 'fr',
   onStartDateWith,
   onStartFullEvent,
   onOpenAvatarCreator,
@@ -37,6 +40,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
   const [filter, setFilter] = useState<'all' | 'women' | 'men' | 'nonbinary'>('all');
   const [showRules, setShowRules] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'dating-floor' | 'attendees'>('dating-floor');
+  const t = TRANSLATIONS[language];
 
   const completedSuitorIds = new Set(results.map(r => r.suitorId));
   const matchedSuitorIds = new Set(results.filter(r => r.isMutualMatch).map(r => r.suitorId));
@@ -61,11 +65,11 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
           className="min-h-[40px] text-xs font-retro text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Browse All Community Causes</span>
+          <span>{t.browseAllCauses}</span>
         </button>
 
         <div className="text-xs font-retro text-slate-400">
-          Organizer: <span className="text-slate-200">{event.creatorName}</span>
+          {language === 'fr' ? 'Organisé par :' : 'Organizer:'} <span className="text-slate-200">{event.creatorName}</span>
         </div>
       </div>
 
@@ -73,6 +77,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
       <CommunityFundraiserBar
         event={event}
         registrationCount={eventRegistrations.length}
+        language={language}
         onOpenRegister={onOpenRegister}
       />
 
@@ -85,20 +90,24 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
             <div className="inline-flex items-center gap-2 text-xs font-retro text-cyan-400 mb-2">
               <span>{event.venueName.toUpperCase()}</span>
               <span aria-hidden="true">·</span>
-              <span>SPEED DATING FLOOR</span>
+              <span>{language === 'fr' ? 'PISTE DE SPEED DATING' : 'SPEED DATING FLOOR'}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-pixel text-pink-400 tracking-tight text-wrap-balance">
               {event.title}
             </h1>
             <p className="text-xs md:text-sm text-slate-300 font-retro mt-2 max-w-xl">
-              Meet fellow community members, support <strong>{event.beneficiaryName}</strong>, and discover your player two!
+              {language === 'fr' ? (
+                <>Rencontrez des participants engagés, soutenez <strong>{event.beneficiaryName}</strong> et découvrez votre Joueur 2 !</>
+              ) : (
+                <>Meet fellow community members, support <strong>{event.beneficiaryName}</strong>, and discover your player two!</>
+              )}
             </p>
 
             {/* Quick Player Stats */}
             <div className="flex flex-wrap items-center gap-3 mt-4 text-xs font-retro text-slate-400 justify-center md:justify-start">
-              <span>Dates: {results.length}/{suitors.length} completed</span>
+              <span>{language === 'fr' ? `Rencontres : ${results.length}/${suitors.length} faites` : `Dates: ${results.length}/${suitors.length} completed`}</span>
               <span aria-hidden="true">·</span>
-              <span className="text-pink-400 font-bold">{matchedSuitorIds.size} Mutual Matches</span>
+              <span className="text-pink-400 font-bold">{matchedSuitorIds.size} {t.mutualMatchesBadge}</span>
               <span aria-hidden="true">·</span>
               <button
                 onClick={() => {
@@ -108,7 +117,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 className="text-cyan-400 hover:underline flex items-center gap-1"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
-                <span>How to Play</span>
+                <span>{t.howToPlay}</span>
               </button>
             </div>
           </div>
@@ -124,7 +133,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:translate-y-0.5 flex items-center gap-2"
               >
                 <Flame className="w-4 h-4 fill-slate-950" />
-                <span>View Match Reveal!</span>
+                <span>{t.viewMatchReveal}</span>
               </button>
             ) : (
               <button
@@ -135,7 +144,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 className="px-6 py-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:translate-y-0.5 flex items-center gap-2"
               >
                 <Play className="w-4 h-4 fill-slate-950" />
-                <span>Start Speed Dating ({suitors.length - results.length} Left)</span>
+                <span>{t.startSpeedDating} ({suitors.length - results.length} {language === 'fr' ? 'Restants' : 'Left'})</span>
               </button>
             )}
 
@@ -147,7 +156,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
               className="px-4 py-3 bg-emerald-950/80 hover:bg-emerald-900/80 border border-emerald-500/50 text-emerald-300 font-retro text-xs rounded-xl transition-colors flex items-center gap-2"
             >
               <Ticket className="w-4 h-4 text-emerald-400" />
-              <span>Register / Donate</span>
+              <span>{t.registerDonateBtn}</span>
             </button>
           </div>
         </div>
@@ -156,16 +165,16 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
         {showRules && (
           <div className="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-retro text-slate-300 animate-fade-in">
             <div className="bg-slate-950/70 p-3.5 rounded-lg border border-slate-800">
-              <div className="font-pixel text-[11px] text-pink-400 mb-1">1. Banter & Dialogue</div>
-              <p>Listen to your suitor&apos;s prompt and pick the witty response that matches their energy. Great chemistry unlocks cute reactions!</p>
+              <div className="font-pixel text-[11px] text-pink-400 mb-1">{t.rules1Title}</div>
+              <p>{t.rules1Desc}</p>
             </div>
             <div className="bg-slate-950/70 p-3.5 rounded-lg border border-slate-800">
-              <div className="font-pixel text-[11px] text-cyan-400 mb-1">2. Heart Sync Minigame</div>
-              <p>During the date, test your rhythm in the quick-time event! Click when the heart aligns with the target ring to score +15 chemistry.</p>
+              <div className="font-pixel text-[11px] text-cyan-400 mb-1">{t.rules2Title}</div>
+              <p>{t.rules2Desc}</p>
             </div>
             <div className="bg-slate-950/70 p-3.5 rounded-lg border border-slate-800">
-              <div className="font-pixel text-[11px] text-yellow-400 mb-1">3. Secret Verdict & Match</div>
-              <p>Cast your vote: Like, Pass, or Super-Like! When both of you say YES, an 8-bit match is minted with full PDA chat & Date #2 invite!</p>
+              <div className="font-pixel text-[11px] text-yellow-400 mb-1">{t.rules3Title}</div>
+              <p>{t.rules3Desc}</p>
             </div>
           </div>
         )}
@@ -185,7 +194,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Speed Dating Floor ({suitors.length} Tables)
+            {t.speedDatingTablesTab} ({suitors.length} Tables)
           </button>
           <button
             onClick={() => {
@@ -199,7 +208,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            <span>Community Donors & Registrations ({eventRegistrations.length})</span>
+            <span>{t.communityDonorsTab} ({eventRegistrations.length})</span>
           </button>
         </div>
 
@@ -212,7 +221,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
             className="min-h-[42px] px-3.5 py-2 text-xs font-pixel text-pink-400 bg-pink-950/60 border border-pink-500/40 hover:bg-pink-900/60 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span>Open Matches ({matchedSuitorIds.size})</span>
+            <span>{t.openMatchesBtn} ({matchedSuitorIds.size})</span>
           </button>
         )}
       </div>
@@ -221,7 +230,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
         <>
           {/* Suitor Orientation Filters */}
           <div className="flex flex-wrap items-center gap-1.5 mb-6">
-            <span className="text-xs font-retro text-slate-400 mr-2">Filter Suitors:</span>
+            <span className="text-xs font-retro text-slate-400 mr-2">{t.filterSuitors}</span>
             <button
               onClick={() => {
                 audio.playSelect();
@@ -233,7 +242,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
-              All Suitors ({suitors.length})
+              {t.allSuitors} ({suitors.length})
             </button>
             <button
               onClick={() => {
@@ -246,7 +255,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
-              Women
+              {t.women}
             </button>
             <button
               onClick={() => {
@@ -259,7 +268,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
-              Men
+              {t.men}
             </button>
             <button
               onClick={() => {
@@ -272,7 +281,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
-              Non-Binary
+              {t.nonbinary}
             </button>
           </div>
 
@@ -303,16 +312,16 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                     {isMatched ? (
                       <span className="text-[10px] font-pixel text-pink-400 bg-pink-950/80 px-2 py-0.5 rounded border border-pink-500/40 flex items-center gap-1">
                         <Heart className="w-3 h-3 fill-pink-400" />
-                        <span>MUTUAL MATCH!</span>
+                        <span>{t.mutualMatchTag}</span>
                       </span>
                     ) : isCompleted ? (
                       <span className="text-[10px] font-retro text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 flex items-center gap-1">
                         <Check className="w-3 h-3 text-slate-400" />
-                        <span>Date Concluded</span>
+                        <span>{t.dateConcluded}</span>
                       </span>
                     ) : (
                       <span className="text-[10px] font-retro text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">
-                        Waiting at Table
+                        {t.waitingAtTable}
                       </span>
                     )}
                   </div>
@@ -335,7 +344,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                           {suitor.title}
                         </div>
                         <div className="text-[11px] font-retro text-slate-400 mt-1">
-                          Flirting Style: <span className="text-slate-300">{suitor.flirtingStyle}</span>
+                          {language === 'fr' ? 'Style de Drague :' : 'Flirting Style:'} <span className="text-slate-300">{suitor.flirtingStyle}</span>
                         </div>
                       </div>
                     </div>
@@ -347,17 +356,17 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                     {/* Compatibility Quirks */}
                     <div className="bg-slate-950/80 border border-slate-800/80 rounded-lg p-2.5 text-[11px] font-retro space-y-1 mb-4">
                       <div className="text-emerald-400 truncate">
-                        ★ <strong>Green Flag:</strong> {suitor.greenFlag}
+                        ★ <strong>{language === 'fr' ? 'Point Fort :' : 'Green Flag:'}</strong> {suitor.greenFlag}
                       </div>
                       <div className="text-amber-400 truncate">
-                        ⚡ <strong>Red Flag:</strong> {suitor.redFlag}
+                        ⚡ <strong>{language === 'fr' ? 'Point Faible :' : 'Red Flag:'}</strong> {suitor.redFlag}
                       </div>
                     </div>
 
                     {/* Date chemistry record if completed */}
                     {result && (
                       <div className="text-xs font-retro text-slate-400 mb-4 flex items-center justify-between">
-                        <span>Chemistry Result:</span>
+                        <span>{language === 'fr' ? 'Résultat d’Alchimie :' : 'Chemistry Result:'}</span>
                         <span className="font-pixel text-pink-400">{result.finalChemistry}%</span>
                       </div>
                     )}
@@ -374,7 +383,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                         className="w-full min-h-[44px] py-2.5 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-lg transition-all shadow flex items-center justify-center gap-1.5 active:translate-y-0.5"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Chat With Match →</span>
+                        <span>{t.chatWithMatch}</span>
                       </button>
                     ) : (
                       <button
@@ -389,7 +398,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                         }`}
                       >
                         <Heart className="w-3.5 h-3.5 fill-current" />
-                        <span>{isCompleted ? 'Date Again' : 'Sit at Table'}</span>
+                        <span>{isCompleted ? t.dateAgain : t.sitAtTable}</span>
                       </button>
                     )}
                   </div>
@@ -405,10 +414,10 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
             <div>
               <h3 className="font-pixel text-lg text-slate-100 flex items-center gap-2">
                 <Users className="w-5 h-5 text-cyan-400" />
-                <span>Registered Community Donors ({eventRegistrations.length})</span>
+                <span>{language === 'fr' ? `Donateurs & Inscrits (${eventRegistrations.length})` : `Registered Community Donors (${eventRegistrations.length})`}</span>
               </h3>
               <p className="text-xs font-retro text-slate-400 mt-1">
-                Every ticket sold fuels our ${event.fundraisingGoal.toLocaleString()} goal for {event.beneficiaryName}!
+                {language === 'fr' ? `Chaque billet vendu soutient notre objectif de $${event.fundraisingGoal.toLocaleString()} pour ${event.beneficiaryName} !` : `Every ticket sold fuels our $${event.fundraisingGoal.toLocaleString()} goal for ${event.beneficiaryName}!`}
               </p>
             </div>
 
@@ -420,7 +429,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
               className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:translate-y-0.5 flex items-center gap-1.5 shrink-0"
             >
               <Ticket className="w-3.5 h-3.5" />
-              <span>Register Yourself →</span>
+              <span>{language === 'fr' ? "S'inscrire soi-même →" : 'Register Yourself →'}</span>
             </button>
           </div>
 

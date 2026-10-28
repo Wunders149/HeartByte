@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { PlayerProfile, HairStyle, HairColor, SkinTone, EyeStyle, OutfitStyle, OutfitColor, Accessory } from '../types/dating';
 import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
+import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Sparkles, Check, RefreshCw } from 'lucide-react';
 
 interface AvatarCreatorProps {
   profile: PlayerProfile;
+  language?: Language;
   onSaveProfile: (profile: PlayerProfile) => void;
   onStartDating: () => void;
 }
@@ -75,12 +77,14 @@ const ACCESSORIES: { id: Accessory; label: string }[] = [
 
 export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
   profile,
+  language = 'fr',
   onSaveProfile,
   onStartDating,
 }) => {
   const [currentProfile, setCurrentProfile] = useState<PlayerProfile>(profile);
   const [activeTab, setActiveTab] = useState<'avatar' | 'profile'>('avatar');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const t = TRANSLATIONS[language];
 
   const updateAvatar = (partial: Partial<PlayerProfile['avatar']>) => {
     audio.playSelect();

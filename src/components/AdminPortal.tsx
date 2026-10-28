@@ -214,6 +214,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           registrations={registrations}
           suitors={suitors}
           dateResults={dateResults}
+          language={language}
           onUpdateEvent={onUpdateEvent}
           onDeleteEvent={onDeleteEvent}
           onOpenCreateEvent={onOpenCreateEvent}
