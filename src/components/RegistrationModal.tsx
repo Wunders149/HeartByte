@@ -234,9 +234,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       audio.playSelect();
                       setAdditionalDonation(amt);
                     }}
-                    className={`min-h-[40px] px-3.5 py-1.5 rounded-lg border text-xs font-retro transition-colors ${
+                    className={`min-h-[44px] px-3.5 py-2 rounded-lg border text-xs font-retro transition-all active:scale-95 flex items-center justify-center ${
                       additionalDonation === amt
-                        ? 'border-emerald-400 bg-emerald-950/40 text-emerald-300 font-bold'
+                        ? 'border-emerald-400 bg-emerald-950/40 text-emerald-300 font-bold ring-1 ring-emerald-400/50'
                         : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
                     }`}
                   >
@@ -261,7 +261,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     value={attendeeName}
                     onChange={e => setAttendeeName(e.target.value)}
                     placeholder="e.g. Alex Heart"
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -273,7 +273,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     value={attendeeEmail}
                     onChange={e => setAttendeeEmail(e.target.value)}
                     placeholder="alex@example.com"
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -284,7 +284,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     value={pronouns}
                     onChange={e => setPronouns(e.target.value)}
                     placeholder="they/them, iel, elle, il"
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -293,7 +293,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   <select
                     value={interestedIn}
                     onChange={e => setInterestedIn(e.target.value as PlayerProfile['interestedIn'])}
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   >
                     <option value="all">{language === 'fr' ? 'Tout le monde' : 'Everyone'}</option>
                     <option value="women">{t.women}</option>

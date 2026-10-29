@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AppScreen, AppPortal, PlayerProfile, DateResult, PlayerDecision, CommunityEvent, EventRegistration } from './types/dating';
-import { SUITORS_DATA } from './data/suitors';
 import { INITIAL_COMMUNITY_EVENTS, INITIAL_REGISTRATIONS } from './data/communityEvents';
+import { registrationToSuitor } from './utils/suitorGenerator';
 import { PublicHeader } from './components/PublicHeader';
 import { TitleScreen } from './components/TitleScreen';
 import { EventsDirectory } from './components/EventsDirectory';
@@ -19,18 +19,19 @@ import { RegistrationModal } from './components/RegistrationModal';
 import { EventCreatorModal } from './components/EventCreatorModal';
 import { AdminPortal } from './components/AdminPortal';
 import { EventRoadmap } from './components/EventRoadmap';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { audio } from './utils/audio';
 import { Language, TRANSLATIONS } from './utils/i18n';
 import { ShieldCheck } from 'lucide-react';
 
-// Default initial player profile
-const INITIAL_PLAYER_PROFILE: PlayerProfile = {
-  name: 'Alex Heart',
+// Clean initial player profile (no fictional demo name/character)
+const CLEAN_INITIAL_PLAYER_PROFILE: PlayerProfile = {
+  name: '',
   pronouns: 'they/them',
   interestedIn: 'all',
-  vibeTag: 'Community Supporter & Gamer',
-  bio: 'Here to support local causes, donate to community projects, and find a Player 2!',
-  favorite8BitGame: 'EarthBound & Chrono Trigger',
+  vibeTag: 'Player 1',
+  bio: '',
+  favorite8BitGame: '',
   avatar: {
     skinTone: 'peach',
     hairStyle: 'spiky',
@@ -43,6 +44,56 @@ const INITIAL_PLAYER_PROFILE: PlayerProfile = {
   }
 };
 
+// Safe helper to purge cached mock events from previous runs
+function getCleanInitialEvents(): CommunityEvent[] {
+  try {
+    const saved = localStorage.getItem('heartbyte_events');
+    if (!saved) return INITIAL_COMMUNITY_EVENTS;
+    const parsed = JSON.parse(saved);
+    const mockIds = ['starlight-arcade-save', 'neon-shelter-drive', 'whisker-cat-garden', 'downtown-indie-dev'];
+    if (Array.isArray(parsed) && parsed.some((e: any) => mockIds.includes(e.id))) {
+      localStorage.removeItem('heartbyte_events');
+      return [];
+    }
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// Safe helper to purge cached mock registrations from previous runs
+function getCleanInitialRegistrations(): EventRegistration[] {
+  try {
+    const saved = localStorage.getItem('heartbyte_registrations');
+    if (!saved) return INITIAL_REGISTRATIONS;
+    const parsed = JSON.parse(saved);
+    const mockIds = ['reg-nova', 'reg-kai', 'reg-rowan', 'reg-blaze'];
+    if (Array.isArray(parsed) && parsed.some((r: any) => mockIds.includes(r.id))) {
+      localStorage.removeItem('heartbyte_registrations');
+      return [];
+    }
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// Safe helper to purge cached mock player profile
+function getCleanInitialPlayerProfile(): PlayerProfile {
+  try {
+    const saved = localStorage.getItem('heartbyte_player_profile');
+    if (!saved) return CLEAN_INITIAL_PLAYER_PROFILE;
+    const parsed = JSON.parse(saved);
+    if (parsed.name === 'Alex Heart') {
+      localStorage.removeItem('heartbyte_player_profile');
+      return CLEAN_INITIAL_PLAYER_PROFILE;
+    }
+    return parsed;
+  } catch {
+    return CLEAN_INITIAL_PLAYER_PROFILE;
+  }
+}
+
 export default function App() {
   // Top-level portal separation: 'public' (attendees & speed daters) vs 'admin' (organizers)
   const [portal, setPortal] = useState<AppPortal>(() => {
@@ -50,26 +101,18 @@ export default function App() {
   });
 
   const [screen, setScreen] = useState<AppScreen>('TITLE');
-  const [playerProfile, setPlayerProfile] = useState<PlayerProfile>(() => {
-    const saved = localStorage.getItem('heartbyte_player_profile');
-    return saved ? JSON.parse(saved) : INITIAL_PLAYER_PROFILE;
-  });
+  const [playerProfile, setPlayerProfile] = useState<PlayerProfile>(getCleanInitialPlayerProfile);
 
   // Community Events state
-  const [events, setEvents] = useState<CommunityEvent[]>(() => {
-    const saved = localStorage.getItem('heartbyte_events');
-    return saved ? JSON.parse(saved) : INITIAL_COMMUNITY_EVENTS;
-  });
+  const [events, setEvents] = useState<CommunityEvent[]>(getCleanInitialEvents);
 
   const [activeEventId, setActiveEventId] = useState<string>(() => {
-    return INITIAL_COMMUNITY_EVENTS[0].id;
+    const initialEvents = getCleanInitialEvents();
+    return initialEvents[0]?.id || '';
   });
 
   // Registrations state
-  const [registrations, setRegistrations] = useState<EventRegistration[]>(() => {
-    const saved = localStorage.getItem('heartbyte_registrations');
-    return saved ? JSON.parse(saved) : INITIAL_REGISTRATIONS;
-  });
+  const [registrations, setRegistrations] = useState<EventRegistration[]>(getCleanInitialRegistrations);
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -78,7 +121,7 @@ export default function App() {
 
   // Dating session state
   const [results, setResults] = useState<DateResult[]>([]);
-  const [activeSuitorId, setActiveSuitorId] = useState<string>(SUITORS_DATA[0].id);
+  const [activeSuitorId, setActiveSuitorId] = useState<string>('');
   const [datingQueue, setDatingQueue] = useState<string[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
   
@@ -272,9 +315,17 @@ export default function App() {
 
   // Start Full Speed Dating Event
   const handleStartFullEvent = () => {
+    if (eventSuitors.length === 0) {
+      if (activeEvent) {
+        openRegisterModalFor(activeEvent);
+      } else {
+        setIsCreateModalOpen(true);
+      }
+      return;
+    }
     const alreadyDated = new Set(results.map(r => r.suitorId));
-    const remaining = SUITORS_DATA.filter(s => !alreadyDated.has(s.id)).map(s => s.id);
-    const queue = remaining.length > 0 ? remaining : SUITORS_DATA.map(s => s.id);
+    const remaining = eventSuitors.filter(s => !alreadyDated.has(s.id)).map(s => s.id);
+    const queue = remaining.length > 0 ? remaining : eventSuitors.map(s => s.id);
 
     setDatingQueue(queue);
     setCurrentQueueIndex(0);
@@ -289,7 +340,7 @@ export default function App() {
     finalChemistry: number,
     notes: string
   ) => {
-    const suitor = SUITORS_DATA.find(s => s.id === suitorId);
+    const suitor = allSuitors.find(s => s.id === suitorId);
     const suitorLikedBack = suitor ? finalChemistry >= suitor.minMatchChemistry : false;
     const isMutualMatch = (decision === 'like' || decision === 'superlike') && suitorLikedBack;
 
@@ -335,6 +386,10 @@ export default function App() {
   // Safe roadmap & navigation router
   const handleNavigateScreen = (targetScreen: AppScreen) => {
     if (targetScreen === 'SPEED_DATE') {
+      if (eventSuitors.length === 0) {
+        setScreen('EVENT_LOBBY');
+        return;
+      }
       if (datingQueue.length === 0 || currentQueueIndex >= datingQueue.length) {
         handleStartFullEvent();
         return;
@@ -350,9 +405,26 @@ export default function App() {
     setScreen('EVENT_LOBBY');
   };
 
-  const activeEvent = events.find(e => e.id === activeEventId) || events[0] || INITIAL_COMMUNITY_EVENTS[0];
-  const currentSuitor = SUITORS_DATA.find(s => s.id === activeSuitorId) || SUITORS_DATA[0];
-  const matchedSuitors = SUITORS_DATA.filter(s =>
+  const activeEvent = events.find(e => e.id === activeEventId) || events[0] || null;
+
+  // Dynamically compute suitors seated at tables from real registrations for the active event
+  const eventSuitors = useMemo(() => {
+    if (!activeEvent) return [];
+    return registrations
+      .filter(r => r.eventId === activeEvent.id)
+      .map(r => registrationToSuitor(r, activeEvent, language));
+  }, [registrations, activeEvent, language]);
+
+  // All suitors across all registered events
+  const allSuitors = useMemo(() => {
+    return registrations.map(r => {
+      const evt = events.find(e => e.id === r.eventId);
+      return registrationToSuitor(r, evt, language);
+    });
+  }, [registrations, events, language]);
+
+  const currentSuitor = eventSuitors.find(s => s.id === activeSuitorId) || eventSuitors[0] || null;
+  const matchedSuitors = allSuitors.filter(s =>
     results.some(r => r.suitorId === s.id && r.isMutualMatch)
   );
 
@@ -361,27 +433,37 @@ export default function App() {
   // If currently in Admin Portal, render the dedicated Admin environment
   if (portal === 'admin') {
     return (
-      <AdminPortal
-        events={events}
-        registrations={registrations}
-        suitors={SUITORS_DATA}
-        dateResults={results}
-        crtEnabled={crtEnabled}
-        onToggleCrt={handleToggleCrt}
-        bgmActive={bgmActive}
-        onToggleBgm={handleToggleBgm}
-        isMuted={isMuted}
-        onToggleMute={handleToggleMute}
-        language={language}
-        onToggleLanguage={handleToggleLanguage}
-        onUpdateEvent={handleUpdateEvent}
-        onDeleteEvent={handleDeleteEvent}
-        onOpenCreateEvent={() => setIsCreateModalOpen(true)}
-        onToggleCheckIn={handleToggleCheckIn}
-        onDeleteRegistration={handleDeleteRegistration}
-        onAddOfflineDonation={handleAddOfflineDonation}
-        onExitToPublic={() => setPortal('public')}
-      />
+      <>
+        <AdminPortal
+          events={events}
+          registrations={registrations}
+          suitors={allSuitors}
+          dateResults={results}
+          crtEnabled={crtEnabled}
+          onToggleCrt={handleToggleCrt}
+          bgmActive={bgmActive}
+          onToggleBgm={handleToggleBgm}
+          isMuted={isMuted}
+          onToggleMute={handleToggleMute}
+          language={language}
+          onToggleLanguage={handleToggleLanguage}
+          onUpdateEvent={handleUpdateEvent}
+          onDeleteEvent={handleDeleteEvent}
+          onOpenCreateEvent={() => setIsCreateModalOpen(true)}
+          onToggleCheckIn={handleToggleCheckIn}
+          onDeleteRegistration={handleDeleteRegistration}
+          onAddOfflineDonation={handleAddOfflineDonation}
+          onExitToPublic={() => setPortal('public')}
+        />
+
+        {/* Event Creator Modal: Exclusive to Authenticated Organizers */}
+        <EventCreatorModal
+          isOpen={isCreateModalOpen}
+          language={language}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreateEvent={handleCreateEvent}
+        />
+      </>
     );
   }
 
@@ -414,22 +496,25 @@ export default function App() {
         onNavigate={handleNavigateScreen}
         language={language}
         datesCompletedCount={results.length}
-        totalDatesCount={SUITORS_DATA.length}
+        totalDatesCount={eventSuitors.length}
         matchesCount={matchedSuitors.length}
         hasRegistered={registrations.length > 0}
       />
 
-      {/* Screen Views */}
-      <main className="flex-1">
+      {/* Screen Views with bottom padding for mobile dock */}
+      <main className="flex-1 pb-20 md:pb-6">
         {screen === 'TITLE' && (
           <TitleScreen
             playerProfile={playerProfile}
-            featuredSuitors={SUITORS_DATA}
+            featuredSuitors={allSuitors}
             events={events}
             language={language}
             onStartGame={() => setScreen('EVENT_LOBBY')}
             onOpenEventsDirectory={() => setScreen('EVENTS_DIRECTORY')}
-            onOpenCreateEvent={() => setIsCreateModalOpen(true)}
+            onOpenCreateEvent={() => {
+              audio.playSelect();
+              setPortal('admin');
+            }}
             onOpenAvatarCreator={() => setScreen('AVATAR_CREATOR')}
           />
         )}
@@ -441,7 +526,10 @@ export default function App() {
             activeEventId={activeEventId}
             language={language}
             onSelectEvent={id => setActiveEventId(id)}
-            onOpenCreateEvent={() => setIsCreateModalOpen(true)}
+            onOpenCreateEvent={() => {
+              audio.playSelect();
+              setPortal('admin');
+            }}
             onOpenRegister={evt => openRegisterModalFor(evt)}
             onEnterDatingFloor={evt => {
               setActiveEventId(evt.id);
@@ -453,7 +541,7 @@ export default function App() {
         {screen === 'EVENT_LOBBY' && (
           <EventLobby
             event={activeEvent}
-            suitors={SUITORS_DATA}
+            suitors={eventSuitors}
             results={results}
             registrations={registrations}
             playerProfile={playerProfile}
@@ -466,7 +554,13 @@ export default function App() {
               setScreen('MATCH_MESSENGER');
             }}
             onOpenReveal={() => setScreen('MATCH_REVEAL')}
-            onOpenRegister={() => openRegisterModalFor(activeEvent)}
+            onOpenRegister={() => {
+              if (activeEvent) {
+                openRegisterModalFor(activeEvent);
+              } else {
+                setIsCreateModalOpen(true);
+              }
+            }}
             onBackToDirectory={() => setScreen('EVENTS_DIRECTORY')}
           />
         )}
@@ -496,7 +590,7 @@ export default function App() {
         {screen === 'MATCH_REVEAL' && (
           <MatchRevealScreen
             results={results}
-            suitors={SUITORS_DATA}
+            suitors={allSuitors}
             playerProfile={playerProfile}
             language={language}
             onOpenMessenger={suitorId => {
@@ -535,12 +629,12 @@ export default function App() {
         />
       )}
 
-      {/* Event Creator Modal */}
-      <EventCreatorModal
-        isOpen={isCreateModalOpen}
+      {/* Floating Retro Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        currentScreen={screen}
+        onNavigate={handleNavigateScreen}
+        matchesCount={matchedSuitors.length}
         language={language}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreateEvent={handleCreateEvent}
       />
 
       {/* Public Retro Bottom Status Bar */}

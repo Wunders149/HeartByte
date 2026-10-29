@@ -68,6 +68,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [donationAmount, setDonationAmount] = useState<number>(100);
   const [sponsorName, setSponsorName] = useState<string>('');
 
+  // Inline non-blocking delete confirmation states
+  const [confirmDeleteEventId, setConfirmDeleteEventId] = useState<string | null>(null);
+  const [confirmDeleteRegId, setConfirmDeleteRegId] = useState<string | null>(null);
+
   // Overall metrics
   const totalRevenue = events.reduce((sum, e) => sum + e.currentFundsRaised, 0);
   const totalGoal = events.reduce((sum, e) => sum + e.fundraisingGoal, 0);
@@ -288,8 +292,58 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* TAB 1: Events Management */}
       {activeTab === 'events' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map(event => {
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div>
+              <h3 className="font-pixel text-sm text-yellow-400 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                <span>{language === 'fr' ? 'Gestion des Soirées Caritatives' : 'Fundraising Events Management'}</span>
+              </h3>
+              <p className="text-xs font-retro text-slate-400 mt-0.5">
+                {language === 'fr' 
+                  ? 'Espace réservé aux organisateurs : publiez, modifiez et suivez les objectifs de dons.'
+                  : 'Organizer-only control room: publish, edit, and track fundraiser goals.'}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                audio.playSelect();
+                onOpenCreateEvent();
+              }}
+              className="min-h-[44px] px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:scale-95 inline-flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{language === 'fr' ? '+ Créer une Soirée Bénéfice' : '+ Create Benefit Event'}</span>
+            </button>
+          </div>
+
+          {events.length === 0 ? (
+            <div className="bg-slate-900 border-2 border-dashed border-slate-800 rounded-2xl p-10 text-center">
+              <div className="w-14 h-14 mx-auto mb-3 bg-yellow-950/60 rounded-full flex items-center justify-center border border-yellow-500/40">
+                <Building2 className="w-7 h-7 text-yellow-400" />
+              </div>
+              <h3 className="font-pixel text-base text-yellow-400 mb-2">
+                {language === 'fr' ? 'Aucune Soirée Caritative Active' : 'No Active Fundraiser Events'}
+              </h3>
+              <p className="text-xs font-retro text-slate-400 max-w-md mx-auto mb-6">
+                {language === 'fr'
+                  ? 'En tant qu’organisateur, vous avez les droits exclusifs pour lancer et gérer des soirées de speed dating solidaire.'
+                  : 'As an organizer, you have exclusive authority to launch and manage community speed dating fundraisers.'}
+              </p>
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onOpenCreateEvent();
+                }}
+                className="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 inline-flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{language === 'fr' ? '+ Créer la Première Soirée' : '+ Create First Benefit Event'}</span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.map(event => {
               const eventRegs = registrations.filter(r => r.eventId === event.id);
               const percent = Math.min(100, Math.round((event.currentFundsRaised / event.fundraisingGoal) * 100));
 
@@ -373,20 +427,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       onClick={() => {
                         audio.playPass();
-                        if (confirm(`Are you sure you want to delete "${event.title}"?`)) {
+                        if (confirmDeleteEventId === event.id) {
                           onDeleteEvent(event.id);
+                          setConfirmDeleteEventId(null);
+                        } else {
+                          setConfirmDeleteEventId(event.id);
                         }
                       }}
-                      className="py-1.5 px-2 bg-slate-800 hover:bg-rose-950/60 text-rose-400 font-retro text-xs rounded border border-slate-700 flex items-center justify-center gap-1 transition-colors"
+                      className={`py-1.5 px-2 font-retro text-xs rounded border transition-colors flex items-center justify-center gap-1 ${
+                        confirmDeleteEventId === event.id
+                          ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
+                          : 'bg-slate-800 hover:bg-rose-950/60 text-rose-400 border-slate-700'
+                      }`}
+                      title={confirmDeleteEventId === event.id ? 'Click again to confirm delete' : 'Delete event'}
                     >
                       <Trash2 className="w-3 h-3" />
-                      <span>Delete</span>
+                      <span>{confirmDeleteEventId === event.id ? (language === 'fr' ? 'Confirmer ?' : 'Confirm?') : (language === 'fr' ? 'Supprimer' : 'Delete')}</span>
                     </button>
                   </div>
                 </div>
               );
             })}
           </div>
+          )}
 
           {/* Quick Offline Donation Form */}
           {donationEventId && (
@@ -576,12 +639,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <button
                             onClick={() => {
                               audio.playPass();
-                              if (confirm(`Remove registration for ${reg.attendeeName}?`)) {
+                              if (confirmDeleteRegId === reg.id) {
                                 onDeleteRegistration(reg.id);
+                                setConfirmDeleteRegId(null);
+                              } else {
+                                setConfirmDeleteRegId(reg.id);
                               }
                             }}
-                            className="p-1.5 text-slate-500 hover:text-rose-400 rounded hover:bg-slate-800 transition-colors"
-                            title="Cancel / Delete Registration"
+                            className={`p-1.5 rounded transition-colors ${
+                              confirmDeleteRegId === reg.id
+                                ? 'bg-rose-600 text-white animate-pulse'
+                                : 'text-slate-500 hover:text-rose-400 hover:bg-slate-800'
+                            }`}
+                            title={confirmDeleteRegId === reg.id ? 'Click again to confirm delete' : 'Cancel / Delete Registration'}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -625,29 +695,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Simulated Live Table Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {suitors.map((suitor, idx) => (
-                <div key={suitor.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3 border-b border-slate-900 pb-2">
-                    <span className="font-pixel text-[11px] text-pink-400">TABLE 0{idx + 1}</span>
-                    <span className="text-[10px] font-retro text-emerald-400 bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded">
-                      SEATED & READY
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="p-1 bg-slate-900 border border-slate-800 rounded">
-                      <PixelAvatar avatar={suitor.avatar} size="xs" />
+              {suitors.length === 0 ? (
+                <div className="col-span-full py-8 text-center text-slate-500 font-retro text-xs bg-slate-950/40 rounded-xl border border-dashed border-slate-800">
+                  {language === 'fr'
+                    ? 'Aucune table active pour le moment. Les tables se remplissent dès que les participants s’inscrivent !'
+                    : 'No active tables yet. Tables will seat registered daters once attendees sign up!'}
+                </div>
+              ) : (
+                suitors.map((suitor, idx) => (
+                  <div key={suitor.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3 border-b border-slate-900 pb-2">
+                      <span className="font-pixel text-[11px] text-pink-400">TABLE 0{idx + 1}</span>
+                      <span className="text-[10px] font-retro text-emerald-400 bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded">
+                        SEATED & READY
+                      </span>
                     </div>
-                    <div>
-                      <div className="font-pixel text-xs text-slate-200">{suitor.name}</div>
-                      <div className="text-[11px] font-retro text-cyan-400">{suitor.archetype}</div>
-                      <div className="text-[10px] font-retro text-slate-400 mt-0.5">
-                        Min Match Req: {suitor.minMatchChemistry}%
+
+                    <div className="flex items-center gap-3">
+                      <div className="p-1 bg-slate-900 border border-slate-800 rounded">
+                        <PixelAvatar avatar={suitor.avatar} size="xs" />
+                      </div>
+                      <div>
+                        <div className="font-pixel text-xs text-slate-200">{suitor.name}</div>
+                        <div className="text-[11px] font-retro text-cyan-400">{suitor.archetype}</div>
+                        <div className="text-[10px] font-retro text-slate-400 mt-0.5">
+                          Min Match Req: {suitor.minMatchChemistry}%
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

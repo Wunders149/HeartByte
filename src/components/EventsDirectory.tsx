@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CommunityEvent, EventRegistration, CauseCategory } from '../types/dating';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { Heart, Plus, Users, Calendar, MapPin, Target, Sparkles, Building2, Flame } from 'lucide-react';
+import { Heart, Plus, Users, Calendar, MapPin, Target, Sparkles, Building2, Flame, ShieldCheck } from 'lucide-react';
 
 interface EventsDirectoryProps {
   events: CommunityEvent[];
@@ -82,31 +82,31 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
             </div>
           </div>
 
-          {/* Create Event CTA */}
+          {/* Organizer-only Access to Create Events */}
           <div className="shrink-0">
             <button
               onClick={() => {
                 audio.playSelect();
                 onOpenCreateEvent();
               }}
-              className="px-6 py-3.5 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-xl shadow-xl active:translate-y-0.5 transition-all flex items-center gap-2 group"
+              className="px-5 py-3 bg-yellow-950/70 hover:bg-yellow-900/70 border border-yellow-500/60 text-yellow-300 font-retro text-xs rounded-xl shadow-lg active:translate-y-0.5 transition-all flex items-center gap-2 group"
             >
-              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-              <span>{t.createEventBtn}</span>
+              <ShieldCheck className="w-4 h-4 text-yellow-400" />
+              <span>{language === 'fr' ? 'Espace Organisateur (Créer)' : 'Organizer Portal (Create)'}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Category Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto max-w-full pb-1 scrollbar-none">
           <button
             onClick={() => {
               audio.playSelect();
               setSelectedCategory('all');
             }}
-            className={`px-3 py-1.5 text-xs font-retro rounded transition-colors ${
+            className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg transition-all active:scale-95 shrink-0 flex items-center justify-center whitespace-nowrap ${
               selectedCategory === 'all'
                 ? 'bg-pink-500 text-slate-950 font-bold shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -119,7 +119,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
               audio.playSelect();
               setSelectedCategory('community');
             }}
-            className={`px-3 py-1.5 text-xs font-retro rounded transition-colors ${
+            className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg transition-all active:scale-95 shrink-0 flex items-center justify-center whitespace-nowrap ${
               selectedCategory === 'community'
                 ? 'bg-pink-500 text-slate-950 font-bold shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -132,7 +132,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
               audio.playSelect();
               setSelectedCategory('tech');
             }}
-            className={`px-3 py-1.5 text-xs font-retro rounded transition-colors ${
+            className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg transition-all active:scale-95 shrink-0 flex items-center justify-center whitespace-nowrap ${
               selectedCategory === 'tech'
                 ? 'bg-pink-500 text-slate-950 font-bold shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -145,7 +145,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
               audio.playSelect();
               setSelectedCategory('environment');
             }}
-            className={`px-3 py-1.5 text-xs font-retro rounded transition-colors ${
+            className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg transition-all active:scale-95 shrink-0 flex items-center justify-center whitespace-nowrap ${
               selectedCategory === 'environment'
                 ? 'bg-pink-500 text-slate-950 font-bold shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -158,7 +158,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
               audio.playSelect();
               setSelectedCategory('arts');
             }}
-            className={`px-3 py-1.5 text-xs font-retro rounded transition-colors ${
+            className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg transition-all active:scale-95 shrink-0 flex items-center justify-center whitespace-nowrap ${
               selectedCategory === 'arts'
                 ? 'bg-pink-500 text-slate-950 font-bold shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -175,9 +175,34 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEvents.map(event => {
-          const eventRegs = registrations.filter(r => r.eventId === event.id);
-          const percent = Math.min(100, Math.round((event.currentFundsRaised / event.fundraisingGoal) * 100));
+        {filteredEvents.length === 0 ? (
+          <div className="col-span-full bg-slate-900 border-2 border-dashed border-slate-800 rounded-2xl p-10 sm:p-14 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-yellow-950/60 rounded-full flex items-center justify-center border border-yellow-500/40">
+              <ShieldCheck className="w-8 h-8 text-yellow-400" />
+            </div>
+            <h3 className="font-pixel text-lg text-slate-100 mb-2">
+              {language === 'fr' ? 'Aucune Soirée Caritative Actuellement' : 'No Fundraiser Events Yet'}
+            </h3>
+            <p className="text-xs sm:text-sm font-retro text-slate-400 max-w-md mx-auto mb-6">
+              {language === 'fr'
+                ? 'Seuls les organisateurs vérifiés (admin) ont les droits pour publier des soirées caritatives. Connectez-vous à l’Espace Organisateur pour créer votre premier événement !'
+                : 'Only verified organizers (admins) are authorized to publish fundraiser events. Log in to the Organizer Portal to create your first event!'}
+            </p>
+            <button
+              onClick={() => {
+                audio.playSelect();
+                onOpenCreateEvent();
+              }}
+              className="min-h-[44px] px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 inline-flex items-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{language === 'fr' ? 'Espace Organisateur (Connexion Admin) →' : 'Organizer Portal (Admin Login) →'}</span>
+            </button>
+          </div>
+        ) : (
+          filteredEvents.map(event => {
+            const eventRegs = registrations.filter(r => r.eventId === event.id);
+            const percent = Math.min(100, Math.round((event.currentFundsRaised / event.fundraisingGoal) * 100));
           const isCurrentActive = event.id === activeEventId;
 
           return (
@@ -244,13 +269,13 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
                 <button
                   onClick={() => {
                     audio.playSelect();
                     onOpenRegister(event);
                   }}
-                  className="py-2.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-pink-400 font-pixel text-[10px] rounded-lg transition-colors text-center"
+                  className="min-h-[44px] py-2.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-pink-400 font-pixel text-[10px] rounded-lg transition-all text-center flex items-center justify-center active:scale-95"
                 >
                   {language === 'fr' ? "S'inscrire / Donner" : 'Register / Donate'}
                 </button>
@@ -261,14 +286,14 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                     onSelectEvent(event.id);
                     onEnterDatingFloor(event);
                   }}
-                  className="py-2.5 px-2 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-[10px] rounded-lg transition-all shadow text-center active:translate-y-0.5"
+                  className="min-h-[44px] py-2.5 px-2 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-[10px] rounded-lg transition-all shadow text-center active:scale-95 flex items-center justify-center"
                 >
                   {language === 'fr' ? 'Entrer dans la salle →' : 'Enter Event Floor →'}
                 </button>
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
     </div>
   );

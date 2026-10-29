@@ -142,10 +142,10 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
                 audio.playSelect();
                 setIsExpanded(prev => !prev);
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-pink-500/30 hover:border-pink-500 text-xs font-pixel text-pink-400 shrink-0 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-lg bg-slate-900 border border-pink-500/30 hover:border-pink-500 text-xs font-pixel text-pink-400 shrink-0 transition-all active:scale-95"
               title={language === 'fr' ? 'Afficher le parcours de l’événement' : 'Toggle event roadmap'}
             >
-              <Map className="w-3.5 h-3.5 text-cyan-400" />
+              <Map className="w-4 h-4 text-cyan-400" />
               <span className="hidden xs:inline">
                 {language === 'fr' ? 'PARCOURS' : 'ROADMAP'}
               </span>
@@ -153,9 +153,9 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
                 ({currentStepObj.stepNumber}/6)
               </span>
               {isExpanded ? (
-                <ChevronDown className="w-3 h-3 text-pink-400 ml-0.5" />
+                <ChevronDown className="w-3.5 h-3.5 text-pink-400 ml-0.5" />
               ) : (
-                <ChevronRight className="w-3 h-3 text-pink-400 ml-0.5" />
+                <ChevronRight className="w-3.5 h-3.5 text-pink-400 ml-0.5" />
               )}
             </button>
 
@@ -167,7 +167,7 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
                   <React.Fragment key={st.id}>
                     <button
                       onClick={() => handleStepClick(st.id)}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded transition-all ${
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded transition-all active:scale-95 ${
                         st.isCurrent
                           ? 'bg-pink-500/20 text-pink-300 border border-pink-500/50 font-bold'
                           : st.isComplete
@@ -201,7 +201,7 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
                 {currentStepObj.titleKey}
               </span>
               <span className="text-slate-500 hidden sm:inline">·</span>
-              <span className="text-slate-400 hidden sm:inline truncate max-w-[220px]">
+              <span className="text-slate-400 hidden sm:inline truncate max-w-[200px]">
                 {currentStepObj.descKey}
               </span>
             </div>
@@ -211,10 +211,10 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
           {nextStep && (
             <button
               onClick={() => handleStepClick(nextStep.id)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-500 hover:to-rose-400 text-slate-950 font-pixel text-[10px] sm:text-xs shrink-0 shadow transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-lg bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-500 hover:to-rose-400 text-slate-950 font-pixel text-xs shrink-0 shadow transition-all active:scale-95"
             >
               <span>{language === 'fr' ? 'Suivant' : 'Next'}</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

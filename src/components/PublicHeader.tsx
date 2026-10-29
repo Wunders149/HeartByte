@@ -151,10 +151,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               onToggleLanguage();
             }}
             title={language === 'en' ? 'Passer en Français' : 'Switch to English'}
-            className="min-h-[40px] px-2 sm:px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:border-cyan-400 text-xs font-retro text-cyan-300 flex items-center justify-center gap-1 transition-colors"
+            className="min-h-[44px] min-w-[44px] px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:border-cyan-400 text-xs font-retro text-cyan-300 flex items-center justify-center gap-1 transition-all active:scale-95"
           >
-            <Globe className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-pixel text-[10px]">{language.toUpperCase()}</span>
+            <Globe className="w-4 h-4 text-cyan-400" />
+            <span className="font-pixel text-[11px] font-bold">{language.toUpperCase()}</span>
           </button>
 
           {/* CRT scanlines toggle */}
@@ -164,13 +164,13 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               onToggleCrt();
             }}
             title={crtEnabled ? 'Disable CRT Scanlines' : 'Enable CRT Scanlines'}
-            className={`min-h-[40px] min-w-[36px] sm:min-w-[40px] p-1.5 rounded-lg border text-xs transition-colors flex items-center justify-center gap-1 ${
+            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
               crtEnabled
                 ? 'border-cyan-500 text-cyan-300 bg-cyan-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <Monitor className="w-3.5 h-3.5" />
+            <Monitor className="w-4 h-4" />
             <span className="font-retro hidden xl:inline text-[10px]">CRT</span>
           </button>
 
@@ -181,13 +181,13 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               onToggleBgm();
             }}
             title={bgmActive ? 'Mute Chiptune BGM' : 'Play 8-Bit BGM'}
-            className={`min-h-[40px] min-w-[36px] sm:min-w-[40px] p-1.5 rounded-lg border text-xs transition-colors flex items-center justify-center gap-1 ${
+            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
               bgmActive
                 ? 'border-pink-500 text-pink-300 bg-pink-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <Music className="w-3.5 h-3.5" />
+            <Music className="w-4 h-4" />
             <span className="font-retro hidden xl:inline text-[10px]">BGM</span>
           </button>
 
@@ -198,13 +198,13 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               onToggleMute();
             }}
             title={isMuted ? 'Unmute 8-Bit Sound FX' : 'Mute Sound FX'}
-            className={`min-h-[40px] min-w-[36px] sm:min-w-[40px] p-1.5 rounded-lg border text-xs transition-colors flex items-center justify-center gap-1 ${
+            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
               !isMuted
                 ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
           {/* Primary CTA: Speed Date */}
@@ -214,10 +214,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               onStartSpeedDating();
               setMobileMenuOpen(false);
             }}
-            className="min-h-[40px] px-2.5 sm:px-3.5 py-1.5 text-xs font-pixel text-slate-950 bg-pink-500 hover:bg-pink-400 active:translate-y-0.5 rounded-lg shadow-sm transition-transform whitespace-nowrap shrink-0 flex items-center justify-center gap-1 sm:gap-1.5"
+            className="min-h-[44px] px-3 sm:px-4 py-2 text-xs font-pixel text-slate-950 bg-pink-500 hover:bg-pink-400 active:scale-95 rounded-lg shadow-md transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5"
           >
-            <Heart className="w-3.5 h-3.5 fill-slate-950" />
-            <span className="hidden xs:inline sm:inline">{t.speedDateBtn}</span>
+            <Heart className="w-4 h-4 fill-slate-950" />
+            <span className="hidden sm:inline">{t.speedDateBtn}</span>
           </button>
         </div>
       </div>

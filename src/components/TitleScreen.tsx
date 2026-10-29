@@ -3,7 +3,7 @@ import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
 import { PlayerProfile, Suitor, CommunityEvent } from '../types/dating';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { Heart, Sparkles, Play, Plus, Building2, Users } from 'lucide-react';
+import { Heart, Sparkles, Play, Plus, Building2, Users, ShieldCheck } from 'lucide-react';
 
 interface TitleScreenProps {
   playerProfile: PlayerProfile;
@@ -72,48 +72,68 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
         {/* Featured Pixel Avatars Showcase */}
         <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-10 overflow-x-auto py-2">
-          {featuredSuitors.slice(0, 4).map((suitor, idx) => (
-            <div
-              key={suitor.id}
-              className={`p-1.5 sm:p-2 bg-slate-900 border-2 rounded-xl shadow-lg transition-transform hover:-translate-y-1 sm:hover:-translate-y-2 ${
-                idx % 2 === 0 ? 'border-pink-500/60' : 'border-cyan-400/60'
-              }`}
-            >
-              <PixelAvatar avatar={suitor.avatar} size="xs" animate={true} />
-              <div className="text-[9px] sm:text-[10px] font-pixel text-slate-300 mt-1 truncate max-w-[54px] sm:max-w-[64px]">
-                {suitor.name.split(' ')[0]}
+          {featuredSuitors.length > 0 ? (
+            featuredSuitors.slice(0, 4).map((suitor, idx) => (
+              <div
+                key={suitor.id}
+                className={`p-1.5 sm:p-2 bg-slate-900 border-2 rounded-xl shadow-lg transition-transform hover:-translate-y-1 sm:hover:-translate-y-2 ${
+                  idx % 2 === 0 ? 'border-pink-500/60' : 'border-cyan-400/60'
+                }`}
+              >
+                <PixelAvatar avatar={suitor.avatar} size="xs" animate={true} />
+                <div className="text-[9px] sm:text-[10px] font-pixel text-slate-300 mt-1 truncate max-w-[54px] sm:max-w-[64px]">
+                  {suitor.name.split(' ')[0]}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="px-4 py-2 bg-slate-900/90 border border-dashed border-pink-500/40 rounded-xl text-xs font-retro text-pink-300 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-pink-400" />
+              <span>{language === 'fr' ? 'Rejoignez la table comme premier dater solidaire !' : 'Join the table as the first community dater!'}</span>
             </div>
-          ))}
+          )}
 
           {/* Plus Player */}
           <div className="p-1.5 sm:p-2 bg-slate-900 border-2 border-yellow-400/80 rounded-xl shadow-lg transition-transform hover:-translate-y-1 sm:hover:-translate-y-2">
             <PixelAvatar avatar={playerProfile.avatar} size="xs" animate={true} />
             <div className="text-[9px] sm:text-[10px] font-pixel text-yellow-400 mt-1 truncate max-w-[54px] sm:max-w-[64px]">
-              You (P1)
+              {playerProfile.name ? playerProfile.name.split(' ')[0] : 'You (P1)'}
             </div>
           </div>
         </div>
 
-        {/* Action Button Cluster */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-4 max-w-lg mx-auto mb-6 sm:mb-8">
-          <button
-            onClick={() => {
-              audio.playMatchFanfare();
-              onStartGame();
-            }}
-            className="min-h-[48px] px-6 sm:px-7 py-3 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs sm:text-sm rounded-xl shadow-xl transition-all active:translate-y-0.5 flex items-center justify-center gap-2 group"
-          >
-            <Play className="w-4 h-4 fill-slate-950 group-hover:scale-110 transition-transform" />
-            <span>{language === 'fr' ? 'ENTRER EN SESSION' : 'ENTER SPEED DATING'}</span>
-          </button>
+        {/* Action Button Cluster (Responsive 2-column grid for mobile/tablet) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 max-w-xl mx-auto mb-6 sm:mb-8">
+          {events.length > 0 ? (
+            <button
+              onClick={() => {
+                audio.playMatchFanfare();
+                onStartGame();
+              }}
+              className="sm:col-span-2 min-h-[48px] px-6 sm:px-7 py-3 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs sm:text-sm rounded-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 group"
+            >
+              <Play className="w-4 h-4 fill-slate-950 group-hover:scale-110 transition-transform" />
+              <span>{language === 'fr' ? 'ENTRER EN SESSION' : 'ENTER SPEED DATING'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                audio.playSelect();
+                onOpenEventsDirectory();
+              }}
+              className="sm:col-span-2 min-h-[48px] px-6 sm:px-7 py-3 bg-gradient-to-r from-cyan-500 to-blue-400 hover:from-cyan-400 hover:to-blue-300 text-slate-950 font-pixel text-xs sm:text-sm rounded-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 group"
+            >
+              <Building2 className="w-4 h-4 fill-slate-950 group-hover:scale-110 transition-transform" />
+              <span>{language === 'fr' ? 'EXPLORER LES SOIRÉES' : 'BROWSE FUNDRAISERS'}</span>
+            </button>
+          )}
 
           <button
             onClick={() => {
               audio.playSelect();
               onOpenEventsDirectory();
             }}
-            className="min-h-[48px] px-5 sm:px-6 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500/60 hover:border-cyan-400 text-cyan-300 font-retro text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="min-h-[48px] px-4 sm:px-5 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500/60 hover:border-cyan-400 text-cyan-300 font-retro text-xs sm:text-sm rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <Building2 className="w-4 h-4" />
             <span>{t.browseAllCauses}</span>
@@ -124,21 +144,22 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
               audio.playSelect();
               onOpenAvatarCreator();
             }}
-            className="min-h-[48px] px-4 sm:px-5 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-purple-500/60 hover:border-purple-400 text-purple-300 font-retro text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="min-h-[48px] px-4 sm:px-5 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-purple-500/60 hover:border-purple-400 text-purple-300 font-retro text-xs sm:text-sm rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span>{t.customizeSprite}</span>
           </button>
 
+          {/* Organizer-only Access to Create Events */}
           <button
             onClick={() => {
               audio.playSelect();
               onOpenCreateEvent();
             }}
-            className="min-h-[48px] px-4 sm:px-5 py-3 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-slate-600 text-slate-200 font-retro text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="sm:col-span-2 min-h-[44px] px-4 sm:px-5 py-2.5 bg-slate-900/90 hover:bg-slate-800 border border-yellow-500/50 hover:border-yellow-400 text-yellow-300 font-retro text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            <Plus className="w-4 h-4 text-emerald-400" />
-            <span>{language === 'fr' ? 'Créer Événement' : 'Create Event'}</span>
+            <ShieldCheck className="w-4 h-4 text-yellow-400" />
+            <span>{language === 'fr' ? 'Accès Organisateur / Admin (Créer un Événement)' : 'Organizer Admin Portal (Create Event)'}</span>
           </button>
         </div>
 

@@ -244,7 +244,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                   {/* Mobile Back-to-Contacts Button */}
                   <button
                     onClick={() => setMobilePane('list')}
-                    className="md:hidden min-h-[40px] px-2.5 py-1 text-xs font-retro text-cyan-400 hover:text-cyan-300 rounded border border-slate-800 bg-slate-900 flex items-center gap-1"
+                    className="md:hidden min-h-[44px] px-3 py-1.5 text-xs font-retro text-cyan-400 hover:text-cyan-300 rounded-lg border border-slate-700 bg-slate-900 flex items-center gap-1 active:scale-95"
                   >
                     ← {t.navMatches}
                   </button>
@@ -302,7 +302,7 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                             ) : (
                               <button
                                 onClick={() => handleAcceptDate(activeSuitor.id)}
-                                className="w-full py-2 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded transition-all shadow active:translate-y-0.5 flex items-center justify-center gap-1.5"
+                                className="w-full min-h-[44px] py-2.5 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-lg transition-all shadow active:scale-95 flex items-center justify-center gap-1.5"
                               >
                                 <Heart className="w-3.5 h-3.5 fill-slate-950" />
                                 <span>{t.acceptDate2Btn}</span>
@@ -326,12 +326,12 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
                   value={inputMessage}
                   onChange={e => setInputMessage(e.target.value)}
                   placeholder={language === 'fr' ? `Envoyer un message rétro à ${activeSuitor.name}...` : `Send a retro message to ${activeSuitor.name}...`}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs md:text-sm font-retro text-slate-100 focus:outline-none focus:border-pink-500 placeholder:text-slate-600"
+                  className="flex-1 min-h-[44px] bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 placeholder:text-slate-600"
                 />
                 <button
                   type="submit"
                   disabled={!inputMessage.trim()}
-                  className="px-4 py-2.5 bg-pink-500 hover:bg-pink-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-pixel text-xs rounded-lg flex items-center gap-1.5 transition-all shadow"
+                  className="min-h-[44px] min-w-[44px] px-4 py-2.5 bg-pink-500 hover:bg-pink-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-pixel text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all shadow active:scale-95"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{t.sendBtn}</span>

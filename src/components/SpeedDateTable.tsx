@@ -21,7 +21,7 @@ interface FloatingHeartParticle {
 }
 
 interface SpeedDateTableProps {
-  suitor: Suitor;
+  suitor?: Suitor | null;
   playerProfile: PlayerProfile;
   dateNumber: number;
   totalDates: number;
@@ -42,7 +42,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   onExitToLobby,
 }) => {
   const [currentRoundIdx, setCurrentRoundIdx] = useState<number>(0);
-  const [chemistry, setChemistry] = useState<number>(suitor.initialChemistry);
+  const [chemistry, setChemistry] = useState<number>(suitor?.initialChemistry ?? 50);
   const [expression, setExpression] = useState<Expression>('idle');
   const [spokenText, setSpokenText] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(true);
@@ -63,7 +63,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   const [isCastingVerdict, setIsCastingVerdict] = useState<boolean>(false);
   const verdictTimeoutRef = useRef<number | null>(null);
 
-  const currentRound = suitor.rounds[currentRoundIdx] || suitor.rounds[0];
+  const currentRound = suitor?.rounds?.[currentRoundIdx] || suitor?.rounds?.[0];
   const typingTimerRef = useRef<number | null>(null);
 
   // Clean up timers on unmount
@@ -77,6 +77,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
 
   // Typewriter effect for suitor speech
   useEffect(() => {
+    if (!suitor || !currentRound) return;
     setIsTyping(true);
     setSpokenText('');
     const fullText = currentRound.suitorSays;
@@ -99,7 +100,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
     return () => {
       if (typingTimerRef.current) clearInterval(typingTimerRef.current);
     };
-  }, [currentRoundIdx, suitor.id]);
+  }, [currentRoundIdx, suitor?.id]);
 
   // Speed dating timer
   useEffect(() => {
@@ -176,7 +177,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
       if (currentRoundIdx === 0 && !minigameCompleted) {
         // Trigger quick Heart Sync minigame between round 1 and 2
         setShowMinigame(true);
-      } else if (currentRoundIdx < suitor.rounds.length - 1) {
+      } else if (suitor && currentRoundIdx < suitor.rounds.length - 1) {
         audio.playRoundBell();
         setCurrentRoundIdx(prev => prev + 1);
         setSelectedChoiceId(null);
@@ -292,7 +293,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
   };
 
   const handleCastVerdict = (decision: PlayerDecision) => {
-    if (isCastingVerdict) return;
+    if (isCastingVerdict || !suitor) return;
 
     if (decision === 'superlike') {
       audio.playSuperLike();
@@ -310,6 +311,34 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
     }
   };
 
+  if (!suitor) {
+    return (
+      <div className="max-w-xl mx-auto py-12 px-4 text-center">
+        <div className="bg-slate-900 border-2 border-pink-500/40 rounded-2xl p-8 shadow-2xl">
+          <div className="w-16 h-16 mx-auto mb-4 bg-pink-950/60 rounded-full flex items-center justify-center border border-pink-500/50">
+            <Heart className="w-8 h-8 text-pink-400" />
+          </div>
+          <h2 className="font-pixel text-xl text-pink-400 mb-3">
+            {language === 'fr' ? 'Table de Rencontre Vide' : 'Empty Speed Dating Table'}
+          </h2>
+          <p className="font-retro text-sm text-slate-300 max-w-md mx-auto mb-6">
+            {language === 'fr'
+              ? 'Aucun participant n’est assis à cette table pour le moment. Inscrivez des participants ou retournez dans la salle principale !'
+              : 'No participant is currently seated at this table. Register participants or return to the main event floor!'}
+          </p>
+          <button
+            onClick={() => {
+              audio.playSelect();
+              if (onExitToLobby) onExitToLobby();
+            }}
+            className="min-h-[44px] px-6 py-2.5 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95"
+          >
+            {language === 'fr' ? '← Retour au Salon' : '← Back to Lobby'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto py-4 sm:py-6 px-3 sm:px-4">
@@ -517,43 +546,60 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
         )}
 
         {dateState === 'dating' ? (
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center">
-            {/* Left: Pixel Suitor Portrait & Dossier (Adaptive size for mobile vs desktop) */}
-            <div className="md:col-span-5 flex flex-col items-center text-center">
-              <div className="relative p-3 sm:p-6 bg-slate-900 border-2 border-pink-500/60 rounded-xl shadow-lg mb-2 sm:mb-4">
-                {/* Desktop Avatar (size xl) */}
-                <div className="hidden sm:block">
-                  <PixelAvatar
-                    avatar={suitor.avatar}
-                    expressionOverride={expression}
-                    size="xl"
-                    animate={true}
-                  />
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-center">
+            {/* Mobile-Only Compact Suitor Bar (Saves vertical space on smartphones) */}
+            <div className="md:hidden flex items-center gap-3 p-3 bg-slate-900/90 border border-pink-500/50 rounded-xl shadow-md">
+              <div className="p-1.5 bg-slate-950 rounded-lg border border-pink-500/40 shrink-0">
+                <PixelAvatar
+                  avatar={suitor.avatar}
+                  expressionOverride={expression}
+                  size="sm"
+                  animate={true}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-1">
+                  <h2 className="font-pixel text-xs text-slate-100 truncate">
+                    {suitor.name}, {suitor.age}
+                  </h2>
+                  <span className="px-2 py-0.5 bg-pink-600 font-pixel text-[8px] text-white rounded-full shrink-0">
+                    {suitor.archetype}
+                  </span>
                 </div>
-                {/* Mobile Phone Avatar (size md) to preserve vertical space */}
-                <div className="sm:hidden">
-                  <PixelAvatar
-                    avatar={suitor.avatar}
-                    expressionOverride={expression}
-                    size="md"
-                    animate={true}
-                  />
+                <div className="text-[11px] font-retro text-cyan-400 truncate mt-0.5">
+                  {suitor.title}
                 </div>
+                <div className="flex items-center gap-2 text-[10px] font-retro text-slate-400 mt-0.5">
+                  <span className="text-emerald-400 truncate">★ {suitor.greenFlag}</span>
+                  <span className="text-slate-600">·</span>
+                  <span className="text-amber-400 truncate">⚡ {suitor.redFlag}</span>
+                </div>
+              </div>
+            </div>
 
-                <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-pink-600 font-pixel text-[9px] sm:text-[10px] text-white rounded-full whitespace-nowrap shadow">
+            {/* Desktop-Only Pixel Suitor Portrait & Dossier (>= md screens) */}
+            <div className="hidden md:flex md:col-span-5 flex-col items-center text-center">
+              <div className="relative p-4 lg:p-6 bg-slate-900 border-2 border-pink-500/60 rounded-xl shadow-lg mb-4">
+                <PixelAvatar
+                  avatar={suitor.avatar}
+                  expressionOverride={expression}
+                  size="xl"
+                  animate={true}
+                />
+                <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-pink-600 font-pixel text-[10px] text-white rounded-full whitespace-nowrap shadow">
                   {suitor.archetype}
                 </div>
               </div>
 
-              <h2 className="font-pixel text-sm sm:text-base md:text-lg text-slate-100 mt-2">
+              <h2 className="font-pixel text-base lg:text-lg text-slate-100 mt-2">
                 {suitor.name}, {suitor.age}
               </h2>
-              <div className="text-[11px] sm:text-xs font-retro text-cyan-400 mt-0.5">
+              <div className="text-xs font-retro text-cyan-400 mt-0.5">
                 {suitor.title}
               </div>
 
               {/* Suitor Quick Badges */}
-              <div className="mt-2 sm:mt-4 flex flex-wrap justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-retro text-slate-400">
+              <div className="mt-4 flex flex-wrap justify-center gap-2 text-[11px] font-retro text-slate-400">
                 <span className="text-emerald-400">★ {suitor.greenFlag}</span>
                 <span className="text-slate-600">·</span>
                 <span className="text-amber-400">⚡ {suitor.redFlag}</span>
@@ -561,36 +607,38 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
             </div>
 
             {/* Right: Dialogue Box & Player Response Choices */}
-            <div className="md:col-span-7 flex flex-col justify-between sm:min-h-[380px]">
+            <div className="md:col-span-7 flex flex-col justify-between sm:min-h-[360px]">
               {/* Suitor Speech Box (NES/SNES RPG style) */}
-              <div className="pixel-box-pink p-3.5 sm:p-5 rounded-lg mb-4 sm:mb-6 relative">
-                <div className="text-[10px] font-pixel text-pink-400 mb-1.5 sm:mb-2 flex items-center gap-1.5">
-                  <MessageSquare className="w-3 h-3" />
-                  <span>{suitor.name.toUpperCase()} {t.saysPrefix}</span>
+              <div className="pixel-box-pink p-3.5 sm:p-5 rounded-lg mb-3 sm:mb-5 relative">
+                <div className="text-[10px] font-pixel text-pink-400 mb-1.5 sm:mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>{suitor.name.toUpperCase()} {t.saysPrefix}</span>
+                  </div>
+                  <span className="text-[10px] font-retro text-slate-400">
+                    {language === 'fr' ? `Manche ${currentRoundIdx + 1}/3` : `Round ${currentRoundIdx + 1}/3`}
+                  </span>
                 </div>
-                <p className="text-xs sm:text-sm md:text-base font-retro text-slate-100 leading-relaxed min-h-[56px] sm:min-h-[72px]">
+                <p className="text-xs sm:text-sm md:text-base font-retro text-slate-100 leading-relaxed min-h-[52px] sm:min-h-[68px]">
                   {spokenText}
                   {isTyping && <span className="inline-block w-2 h-4 bg-pink-400 ml-1 animate-blink" />}
                 </p>
-                <div className="text-[10px] font-retro text-slate-500 text-right mt-1.5">
-                  {language === 'fr' ? `Manche ${currentRoundIdx + 1} sur 3` : `Round ${currentRoundIdx + 1} of 3`}
-                </div>
               </div>
 
               {/* Player Dialogue Options */}
-              <div className="space-y-2.5 sm:space-y-3">
+              <div className="space-y-2 sm:space-y-2.5">
                 <div className="text-[10px] font-pixel text-cyan-400 tracking-wider">
                   {t.selectResponsePrompt}
                 </div>
 
-                {currentRound.choices.map((choice, idx) => {
+                {currentRound?.choices?.map((choice, idx) => {
                   const isSelected = selectedChoiceId === choice.id;
                   return (
                     <button
                       key={choice.id}
                       onClick={() => handleChoiceClick(choice)}
                       disabled={isTyping || selectedChoiceId !== null}
-                      className={`w-full min-h-[44px] text-left p-3 sm:p-3.5 rounded-lg border-2 font-retro text-xs sm:text-sm transition-all flex items-start gap-2.5 sm:gap-3 group relative ${
+                      className={`w-full min-h-[48px] text-left p-3 rounded-lg border-2 font-retro text-xs sm:text-sm transition-all flex items-start gap-2.5 sm:gap-3 group relative active:scale-[0.99] ${
                         isSelected
                           ? 'border-yellow-400 bg-yellow-950/40 text-yellow-200 font-bold scale-[1.01]'
                           : selectedChoiceId !== null
@@ -645,7 +693,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
                 value={playerNotes}
                 onChange={e => setPlayerNotes(e.target.value)}
                 placeholder={t.pdaNotesPlaceholder}
-                className="w-full min-h-[42px] bg-slate-950 border border-slate-700 rounded px-3 py-2 text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500"
                 maxLength={80}
               />
             </div>
@@ -662,7 +710,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               <button
                 onClick={() => handleCastVerdict('pass')}
                 disabled={isCastingVerdict}
-                className={`min-h-[50px] py-3 px-3 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-slate-600 rounded-lg font-pixel text-xs text-slate-300 flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5 ${
+                className={`min-h-[52px] py-3 px-3 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-slate-600 rounded-xl font-pixel text-xs text-slate-300 flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:scale-95 ${
                   isCastingVerdict ? 'opacity-40 cursor-not-allowed' : ''
                 }`}
               >
@@ -674,7 +722,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               <button
                 onClick={() => handleCastVerdict('like')}
                 disabled={isCastingVerdict}
-                className={`min-h-[50px] py-3 px-3 border-2 rounded-lg font-pixel text-xs text-white shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5 ${
+                className={`min-h-[52px] py-3 px-3 border-2 rounded-xl font-pixel text-xs text-white shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:scale-95 ${
                   activeVerdictType === 'like'
                     ? 'bg-pink-500 border-pink-300 ring-4 ring-pink-500/50 scale-105 shadow-pink-500/50'
                     : isCastingVerdict
@@ -690,7 +738,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
               <button
                 onClick={() => handleCastVerdict('superlike')}
                 disabled={isCastingVerdict}
-                className={`min-h-[50px] py-3 px-3 border-2 rounded-lg font-pixel text-xs text-slate-950 shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:translate-y-0.5 ${
+                className={`min-h-[52px] py-3 px-3 border-2 rounded-xl font-pixel text-xs text-slate-950 shadow-lg flex items-center sm:flex-col justify-center gap-2 sm:gap-1.5 transition-all active:scale-95 ${
                   activeVerdictType === 'superlike'
                     ? 'bg-gradient-to-br from-yellow-300 via-amber-300 to-yellow-400 border-white ring-4 ring-yellow-400/60 scale-105 shadow-yellow-500/50'
                     : isCastingVerdict

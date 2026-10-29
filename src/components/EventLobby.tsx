@@ -7,7 +7,7 @@ import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Heart, Play, Users, MessageSquare, Flame, Check, HelpCircle, Ticket, ArrowLeft, Award, Sparkles } from 'lucide-react';
 
 interface EventLobbyProps {
-  event: CommunityEvent;
+  event?: CommunityEvent | null;
   suitors: Suitor[];
   results: DateResult[];
   registrations: EventRegistration[];
@@ -41,6 +41,35 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
   const [showRules, setShowRules] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'dating-floor' | 'attendees'>('dating-floor');
   const t = TRANSLATIONS[language];
+
+  if (!event) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4 text-center">
+        <div className="bg-slate-900 border-2 border-pink-500/40 rounded-2xl p-8 shadow-2xl">
+          <div className="w-16 h-16 mx-auto mb-4 bg-pink-950/60 rounded-full flex items-center justify-center border border-pink-500/50">
+            <Ticket className="w-8 h-8 text-pink-400" />
+          </div>
+          <h2 className="font-pixel text-xl text-pink-400 mb-3">
+            {language === 'fr' ? 'Aucune Soirée Sélectionnée' : 'No Event Selected'}
+          </h2>
+          <p className="font-retro text-sm text-slate-300 max-w-md mx-auto mb-6">
+            {language === 'fr'
+              ? 'Sélectionnez ou créez une soirée caritative dans le répertoire pour accéder à la piste de speed dating !'
+              : 'Choose or create a community speed dating fundraiser in the directory to enter the floor!'}
+          </p>
+          <button
+            onClick={() => {
+              audio.playSelect();
+              onBackToDirectory();
+            }}
+            className="min-h-[44px] px-6 py-2.5 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95"
+          >
+            {language === 'fr' ? '← Explorer les Événements' : '← Browse Fundraisers'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const completedSuitorIds = new Set(results.map(r => r.suitorId));
   const matchedSuitorIds = new Set(results.filter(r => r.isMutualMatch).map(r => r.suitorId));
@@ -135,7 +164,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 <Flame className="w-4 h-4 fill-slate-950" />
                 <span>{t.viewMatchReveal}</span>
               </button>
-            ) : (
+            ) : suitors.length > 0 ? (
               <button
                 onClick={() => {
                   audio.playRoundBell();
@@ -145,6 +174,17 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
               >
                 <Play className="w-4 h-4 fill-slate-950" />
                 <span>{t.startSpeedDating} ({suitors.length - results.length} {language === 'fr' ? 'Restants' : 'Left'})</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onOpenRegister();
+                }}
+                className="px-6 py-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:translate-y-0.5 flex items-center gap-2"
+              >
+                <Ticket className="w-4 h-4" />
+                <span>{language === 'fr' ? "+ Prendre Place à une Table" : "+ Take a Seat at a Table"}</span>
               </button>
             )}
 
@@ -241,17 +281,17 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
 
       {activeTab === 'dating-floor' ? (
         <>
-          {/* Suitor Orientation Filters */}
-          <div className="flex flex-wrap items-center gap-1.5 mb-6">
-            <span className="text-xs font-retro text-slate-400 mr-2">{t.filterSuitors}</span>
+          {/* Suitor Orientation Filters with 44px mobile touch targets */}
+          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 scrollbar-none">
+            <span className="text-xs font-retro text-slate-400 shrink-0 mr-1">{t.filterSuitors}</span>
             <button
               onClick={() => {
                 audio.playSelect();
                 setFilter('all');
               }}
-              className={`px-3 py-1 text-xs font-retro rounded border transition-colors ${
+              className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg border transition-all active:scale-95 shrink-0 flex items-center justify-center ${
                 filter === 'all'
-                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold'
+                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold ring-1 ring-cyan-400/50'
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
@@ -262,9 +302,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 audio.playSelect();
                 setFilter('women');
               }}
-              className={`px-3 py-1 text-xs font-retro rounded border transition-colors ${
+              className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg border transition-all active:scale-95 shrink-0 flex items-center justify-center ${
                 filter === 'women'
-                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold'
+                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold ring-1 ring-cyan-400/50'
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
@@ -275,9 +315,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 audio.playSelect();
                 setFilter('men');
               }}
-              className={`px-3 py-1 text-xs font-retro rounded border transition-colors ${
+              className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg border transition-all active:scale-95 shrink-0 flex items-center justify-center ${
                 filter === 'men'
-                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold'
+                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold ring-1 ring-cyan-400/50'
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
@@ -288,9 +328,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 audio.playSelect();
                 setFilter('nonbinary');
               }}
-              className={`px-3 py-1 text-xs font-retro rounded border transition-colors ${
+              className={`min-h-[44px] px-3.5 py-2 text-xs font-retro rounded-lg border transition-all active:scale-95 shrink-0 flex items-center justify-center ${
                 filter === 'nonbinary'
-                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold'
+                  ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 font-bold ring-1 ring-cyan-400/50'
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
               }`}
             >
@@ -300,7 +340,32 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
 
           {/* Suitors Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSuitors.map(suitor => {
+            {filteredSuitors.length === 0 ? (
+              <div className="col-span-full bg-slate-950/80 border-2 border-dashed border-slate-800 rounded-2xl p-8 sm:p-12 text-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-pink-950/50 rounded-full flex items-center justify-center border border-pink-500/30">
+                  <Heart className="w-7 h-7 text-pink-400" />
+                </div>
+                <h3 className="font-pixel text-base text-pink-400 mb-2">
+                  {language === 'fr' ? 'Aucun participant assis aux tables pour le moment' : 'No participants seated at tables yet'}
+                </h3>
+                <p className="text-xs font-retro text-slate-400 max-w-md mx-auto mb-6">
+                  {language === 'fr'
+                    ? "Soyez le premier à vous inscrire avec votre pass donateur ou invitez vos amis à rejoindre la soirée !"
+                    : "Be the first to register with your donor ticket or invite friends to join this fundraiser!"}
+                </p>
+                <button
+                  onClick={() => {
+                    audio.playSelect();
+                    onOpenRegister();
+                  }}
+                  className="min-h-[44px] px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 inline-flex items-center gap-2"
+                >
+                  <Ticket className="w-4 h-4" />
+                  <span>{language === 'fr' ? "S'inscrire / Prendre Place →" : 'Register & Take a Seat →'}</span>
+                </button>
+              </div>
+            ) : (
+              filteredSuitors.map(suitor => {
               const isCompleted = completedSuitorIds.has(suitor.id);
               const isMatched = matchedSuitorIds.has(suitor.id);
               const result = results.find(r => r.suitorId === suitor.id);
@@ -417,7 +482,7 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   </div>
                 </div>
               );
-            })}
+            }))}
           </div>
         </>
       ) : (
@@ -447,7 +512,26 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {eventRegistrations.map(reg => (
+            {eventRegistrations.length === 0 ? (
+              <div className="col-span-full py-10 text-center bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
+                <p className="text-xs font-retro text-slate-400 mb-3">
+                  {language === 'fr'
+                    ? 'Aucun participant inscrit pour l’instant. Soyez le premier donateur !'
+                    : 'No registered attendees yet. Be the first donor!'}
+                </p>
+                <button
+                  onClick={() => {
+                    audio.playSelect();
+                    onOpenRegister();
+                  }}
+                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:translate-y-0.5 inline-flex items-center gap-1.5"
+                >
+                  <Ticket className="w-3.5 h-3.5" />
+                  <span>{language === 'fr' ? "Prendre un Pass Donateur" : 'Get Donor Pass'}</span>
+                </button>
+              </div>
+            ) : (
+              eventRegistrations.map(reg => (
               <div
                 key={reg.id}
                 className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4 transition-all hover:border-pink-500/50"
@@ -478,7 +562,8 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   </span>
                 </div>
               </div>
-            ))}
+            ))
+          )}
           </div>
         </div>
       )}

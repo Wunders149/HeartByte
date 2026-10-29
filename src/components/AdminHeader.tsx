@@ -130,10 +130,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               onToggleLanguage();
             }}
             title={language === 'en' ? 'Passer en Français' : 'Switch to English'}
-            className="min-h-[40px] px-2 sm:px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:border-yellow-400 text-xs font-retro text-yellow-300 flex items-center justify-center gap-1 transition-colors"
+            className="min-h-[44px] min-w-[44px] px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:border-yellow-400 text-xs font-retro text-yellow-300 flex items-center justify-center gap-1 transition-all active:scale-95"
           >
-            <Globe className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="font-pixel text-[10px]">{language.toUpperCase()}</span>
+            <Globe className="w-4 h-4 text-yellow-400" />
+            <span className="font-pixel text-[11px] font-bold">{language.toUpperCase()}</span>
           </button>
 
           {/* New Event Button (Desktop/Tablet) */}
@@ -142,9 +142,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               audio.playSelect();
               onOpenCreateEvent();
             }}
-            className="hidden sm:flex items-center gap-1.5 min-h-[40px] px-3 py-1.5 text-xs font-retro text-yellow-300 bg-yellow-950/40 border border-yellow-500/50 hover:bg-yellow-900/40 rounded-lg transition-colors"
+            className="hidden sm:flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 text-xs font-retro text-yellow-300 bg-yellow-950/40 border border-yellow-500/50 hover:bg-yellow-900/40 rounded-lg transition-all active:scale-95"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>{t.newCampaign}</span>
           </button>
 
@@ -155,13 +155,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               onToggleCrt();
             }}
             title={crtEnabled ? 'Disable CRT Scanlines' : 'Enable CRT Scanlines'}
-            className={`min-h-[40px] min-w-[36px] sm:min-w-[40px] p-1.5 rounded-lg border text-xs transition-colors flex items-center justify-center gap-1 ${
+            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
               crtEnabled
                 ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <Monitor className="w-3.5 h-3.5" />
+            <Monitor className="w-4 h-4" />
             <span className="font-retro hidden xl:inline text-[10px]">CRT</span>
           </button>
 
@@ -172,13 +172,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               onToggleBgm();
             }}
             title={bgmActive ? 'Mute Chiptune BGM' : 'Play 8-Bit BGM'}
-            className={`min-h-[40px] min-w-[36px] sm:min-w-[40px] p-1.5 rounded-lg border text-xs transition-colors flex items-center justify-center gap-1 ${
+            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
               bgmActive
                 ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            <Music className="w-3.5 h-3.5" />
+            <Music className="w-4 h-4" />
             <span className="font-retro hidden xl:inline text-[10px]">BGM</span>
           </button>
 
@@ -189,13 +189,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               onToggleMute();
             }}
             title={isMuted ? 'Unmute 8-Bit Sound FX' : 'Mute Sound FX'}
-            className={`min-h-[40px] min-w-[36px] sm:min-w-[40px] p-1.5 rounded-lg border text-xs transition-colors flex items-center justify-center gap-1 ${
+            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
               !isMuted
                 ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
           {/* Primary CTA: Exit to Public App */}
@@ -204,9 +204,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               audio.playSelect();
               onExitToPublic();
             }}
-            className="min-h-[40px] px-2.5 sm:px-3 py-1.5 text-xs font-pixel text-slate-950 bg-yellow-400 hover:bg-yellow-300 active:translate-y-0.5 rounded-lg shadow-sm transition-transform whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5"
+            className="min-h-[44px] px-3.5 py-2 text-xs font-pixel text-slate-950 bg-yellow-400 hover:bg-yellow-300 active:scale-95 rounded-lg shadow-md transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span className="hidden xs:inline">{t.exitToPublic}</span>
           </button>
         </div>
