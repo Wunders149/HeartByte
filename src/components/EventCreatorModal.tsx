@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { CommunityEvent, CauseCategory, TicketTier } from '../types/dating';
 import { audio } from '../utils/audio';
@@ -49,6 +49,19 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
   const [tier3Name, setTier3Name] = useState(language === 'fr' ? 'Champion Communautaire' : 'Community Champion');
   const [tier3Price, setTier3Price] = useState<number>(75);
   const [tier3Perks, setTier3Perks] = useState(language === 'fr' ? 'Table VIP réservée + mention d’honneur + invitation permanente an prochain' : 'VIP reserved table + sponsor shoutout + lifetime pass to next year event');
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        audio.playPass();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -110,7 +123,15 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
+    <div
+      onClick={e => {
+        if (e.target === e.currentTarget) {
+          audio.playPass();
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto"
+    >
       <div className="relative w-full max-w-3xl bg-slate-900 border-2 border-pink-500 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 max-h-[92vh] overflow-y-auto">
         <button
           onClick={() => {

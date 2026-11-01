@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { CommunityEvent, EventRegistration, PlayerProfile } from '../types/dating';
 import { PixelAvatar } from './PixelAvatar';
@@ -38,6 +38,19 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   );
   const [ticketIssued, setTicketIssued] = useState<EventRegistration | null>(null);
   const t = TRANSLATIONS[language];
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        audio.playPass();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -81,7 +94,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+    <div
+      onClick={e => {
+        if (e.target === e.currentTarget) {
+          audio.playPass();
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto"
+    >
       <div className="relative w-full max-w-2xl bg-slate-900 border-2 border-pink-500 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 max-h-[92vh] overflow-y-auto">
         {/* Close Button with 44px touch target */}
         <button

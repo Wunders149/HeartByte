@@ -18,6 +18,7 @@ import { MatchMessenger } from './components/MatchMessenger';
 import { RegistrationModal } from './components/RegistrationModal';
 import { EventCreatorModal } from './components/EventCreatorModal';
 import { AdminPortal } from './components/AdminPortal';
+import { OrganizerAuthModal } from './components/OrganizerAuthModal';
 import { EventRoadmap } from './components/EventRoadmap';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { audio } from './utils/audio';
@@ -116,6 +117,7 @@ export default function App() {
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isOrganizerAuthOpen, setIsOrganizerAuthOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [registerTargetEvent, setRegisterTargetEvent] = useState<CommunityEvent | null>(null);
 
@@ -513,7 +515,7 @@ export default function App() {
             onOpenEventsDirectory={() => setScreen('EVENTS_DIRECTORY')}
             onOpenCreateEvent={() => {
               audio.playSelect();
-              setPortal('admin');
+              setIsOrganizerAuthOpen(true);
             }}
             onOpenAvatarCreator={() => setScreen('AVATAR_CREATOR')}
           />
@@ -528,7 +530,7 @@ export default function App() {
             onSelectEvent={id => setActiveEventId(id)}
             onOpenCreateEvent={() => {
               audio.playSelect();
-              setPortal('admin');
+              setIsOrganizerAuthOpen(true);
             }}
             onOpenRegister={evt => openRegisterModalFor(evt)}
             onEnterDatingFloor={evt => {
@@ -558,7 +560,7 @@ export default function App() {
               if (activeEvent) {
                 openRegisterModalFor(activeEvent);
               } else {
-                setIsCreateModalOpen(true);
+                setIsOrganizerAuthOpen(true);
               }
             }}
             onBackToDirectory={() => setScreen('EVENTS_DIRECTORY')}
@@ -629,6 +631,29 @@ export default function App() {
         />
       )}
 
+      {/* Custom Organizer Authentication Modal Pop Up */}
+      <OrganizerAuthModal
+        isOpen={isOrganizerAuthOpen}
+        language={language}
+        onClose={() => setIsOrganizerAuthOpen(false)}
+        onSuccessCreateEvent={() => {
+          setIsOrganizerAuthOpen(false);
+          setIsCreateModalOpen(true);
+        }}
+        onSuccessOpenDashboard={() => {
+          setIsOrganizerAuthOpen(false);
+          setPortal('admin');
+        }}
+      />
+
+      {/* Event Creator Modal Pop Up (Available to verified organizers) */}
+      <EventCreatorModal
+        isOpen={isCreateModalOpen}
+        language={language}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreateEvent={handleCreateEvent}
+      />
+
       {/* Floating Retro Mobile Bottom Navigation Bar */}
       <MobileBottomNav
         currentScreen={screen}
@@ -647,11 +672,11 @@ export default function App() {
           <div className="flex items-center gap-4 text-[11px]">
             <span>{t.footerProceeds}</span>
             <span className="text-slate-700">·</span>
-            {/* Separate Organizer Entrance */}
+            {/* Separate Organizer Entrance via Custom Modal */}
             <button
               onClick={() => {
                 audio.playSelect();
-                setPortal('admin');
+                setIsOrganizerAuthOpen(true);
               }}
               className="text-yellow-400 hover:text-yellow-300 hover:underline flex items-center gap-1 transition-colors"
             >

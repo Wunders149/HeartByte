@@ -26,6 +26,10 @@ import {
   Sparkles
 } from 'lucide-react';
 
+import { CustomModal } from './CustomModal';
+import { CustomConfirmModal } from './CustomConfirmModal';
+import { OfflineDonationModal } from './OfflineDonationModal';
+
 interface AdminDashboardProps {
   events: CommunityEvent[];
   registrations: EventRegistration[];
@@ -60,17 +64,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [selectedEventFilter, setSelectedEventFilter] = useState<string>('all');
   const t = TRANSLATIONS[language];
   
-  // Event Editing Modal / Drawer State
+  // Custom Modal Pop Up States
   const [editingEvent, setEditingEvent] = useState<CommunityEvent | null>(null);
-  
-  // Offline Donation State
-  const [donationEventId, setDonationEventId] = useState<string>('');
-  const [donationAmount, setDonationAmount] = useState<number>(100);
-  const [sponsorName, setSponsorName] = useState<string>('');
-
-  // Inline non-blocking delete confirmation states
-  const [confirmDeleteEventId, setConfirmDeleteEventId] = useState<string | null>(null);
-  const [confirmDeleteRegId, setConfirmDeleteRegId] = useState<string | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<CommunityEvent | null>(null);
+  const [regToDelete, setRegToDelete] = useState<EventRegistration | null>(null);
+  const [eventForDonation, setEventForDonation] = useState<CommunityEvent | null>(null);
 
   // Overall metrics
   const totalRevenue = events.reduce((sum, e) => sum + e.currentFundsRaised, 0);
@@ -124,16 +122,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     audio.playHeartGain();
     onUpdateEvent(editingEvent);
     setEditingEvent(null);
-  };
-
-  const handleAddDonationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!donationEventId || donationAmount <= 0) return;
-    audio.playMatchFanfare();
-    onAddOfflineDonation(donationEventId, donationAmount, sponsorName || 'Community Sponsor');
-    setDonationEventId('');
-    setDonationAmount(100);
-    setSponsorName('');
   };
 
   return (
@@ -416,104 +404,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       onClick={() => {
                         audio.playSelect();
-                        setDonationEventId(event.id);
+                        setEventForDonation(event);
                       }}
-                      className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-retro text-xs rounded border border-slate-700 flex items-center justify-center gap-1 transition-colors"
+                      className="min-h-[38px] py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-retro text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
+                      title={language === 'fr' ? 'Ajouter un don hors-ligne / mécénat' : 'Add offline donation / sponsor match'}
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3.5 h-3.5" />
                       <span>+$ Sponsor</span>
                     </button>
 
                     <button
                       onClick={() => {
                         audio.playPass();
-                        if (confirmDeleteEventId === event.id) {
-                          onDeleteEvent(event.id);
-                          setConfirmDeleteEventId(null);
-                        } else {
-                          setConfirmDeleteEventId(event.id);
-                        }
+                        setEventToDelete(event);
                       }}
-                      className={`py-1.5 px-2 font-retro text-xs rounded border transition-colors flex items-center justify-center gap-1 ${
-                        confirmDeleteEventId === event.id
-                          ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
-                          : 'bg-slate-800 hover:bg-rose-950/60 text-rose-400 border-slate-700'
-                      }`}
-                      title={confirmDeleteEventId === event.id ? 'Click again to confirm delete' : 'Delete event'}
+                      className="min-h-[38px] py-1.5 px-2 bg-slate-800 hover:bg-rose-950/60 text-rose-400 font-retro text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
+                      title={language === 'fr' ? 'Supprimer cet événement' : 'Delete event'}
                     >
-                      <Trash2 className="w-3 h-3" />
-                      <span>{confirmDeleteEventId === event.id ? (language === 'fr' ? 'Confirmer ?' : 'Confirm?') : (language === 'fr' ? 'Supprimer' : 'Delete')}</span>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{language === 'fr' ? 'Supprimer' : 'Delete'}</span>
                     </button>
                   </div>
                 </div>
               );
             })}
           </div>
-          )}
-
-          {/* Quick Offline Donation Form */}
-          {donationEventId && (
-            <div className="bg-slate-900 border-2 border-emerald-500/50 rounded-2xl p-6 max-w-xl mx-auto shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-pixel text-sm text-emerald-400 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  <span>Record Offline Donation / Sponsor Match</span>
-                </h3>
-                <button
-                  onClick={() => setDonationEventId('')}
-                  className="text-slate-400 hover:text-slate-200"
-                >
-                  <XCircle className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleAddDonationSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-retro text-slate-300 mb-1">
-                    Sponsor / Donor Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={sponsorName}
-                    onChange={e => setSponsorName(e.target.value)}
-                    placeholder="e.g. Local Coffee Roasters Match"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-retro text-slate-300 mb-1">
-                    Donation Amount ($ USD)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="5"
-                    required
-                    value={donationAmount}
-                    onChange={e => setDonationAmount(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-pixel text-emerald-400 focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setDonationEventId('')}
-                    className="px-3 py-1.5 text-xs font-retro text-slate-400 hover:text-slate-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow"
-                  >
-                    Credit Donation →
-                  </button>
-                </div>
-              </form>
-            </div>
           )}
         </div>
       )}
@@ -639,19 +554,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <button
                             onClick={() => {
                               audio.playPass();
-                              if (confirmDeleteRegId === reg.id) {
-                                onDeleteRegistration(reg.id);
-                                setConfirmDeleteRegId(null);
-                              } else {
-                                setConfirmDeleteRegId(reg.id);
-                              }
+                              setRegToDelete(reg);
                             }}
-                            className={`p-1.5 rounded transition-colors ${
-                              confirmDeleteRegId === reg.id
-                                ? 'bg-rose-600 text-white animate-pulse'
-                                : 'text-slate-500 hover:text-rose-400 hover:bg-slate-800'
-                            }`}
-                            title={confirmDeleteRegId === reg.id ? 'Click again to confirm delete' : 'Cancel / Delete Registration'}
+                            className="min-h-[40px] min-w-[40px] p-2 rounded-lg transition-colors text-slate-500 hover:text-rose-400 hover:bg-slate-800 flex items-center justify-center ml-auto"
+                            title={language === 'fr' ? 'Annuler / Supprimer cette inscription' : 'Cancel / Delete Registration'}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -802,109 +708,211 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* Edit Event Modal */}
+      {/* Custom Edit Event Modal Pop Up */}
       {editingEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-slate-900 border-2 border-cyan-400 rounded-2xl shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-pixel text-base text-cyan-300">Edit Campaign Details</h3>
-              <button
-                onClick={() => setEditingEvent(null)}
-                className="text-slate-400 hover:text-slate-200"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
+        <CustomModal
+          isOpen={Boolean(editingEvent)}
+          onClose={() => setEditingEvent(null)}
+          title={language === 'fr' ? 'Modifier l’Événement' : 'Edit Campaign Details'}
+          subtitle={
+            language === 'fr'
+              ? 'Mettre à jour les informations de collecte, capacité et lieu.'
+              : 'Update fundraising goals, capacity, and venue details.'
+          }
+          icon={<Edit3 className="w-5 h-5 text-cyan-400" />}
+          badge="CAMPAIGN CONFIG"
+          theme="cyan"
+          maxWidth="lg"
+        >
+          <form onSubmit={handleSaveEditEvent} className="space-y-4">
+            <div>
+              <label className="block text-xs font-pixel text-slate-300 mb-1">
+                {language === 'fr' ? 'Titre de l’événement *' : 'Event Title *'}
+              </label>
+              <input
+                type="text"
+                required
+                value={editingEvent.title}
+                onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+              />
             </div>
 
-            <form onSubmit={handleSaveEditEvent} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-pixel text-slate-300 mb-1">Title</label>
+                <label className="block text-xs font-pixel text-slate-300 mb-1">
+                  {language === 'fr' ? 'Organisation Bénéficiaire *' : 'Beneficiary Name *'}
+                </label>
                 <input
                   type="text"
                   required
-                  value={editingEvent.title}
-                  onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100"
+                  value={editingEvent.beneficiaryName}
+                  onChange={e => setEditingEvent({ ...editingEvent, beneficiaryName: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-pixel text-slate-300 mb-1">Beneficiary Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingEvent.beneficiaryName}
-                    onChange={e => setEditingEvent({ ...editingEvent, beneficiaryName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-pixel text-slate-300 mb-1">Fundraising Goal ($)</label>
-                  <input
-                    type="number"
-                    required
-                    value={editingEvent.fundraisingGoal}
-                    onChange={e => setEditingEvent({ ...editingEvent, fundraisingGoal: Number(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-pixel text-emerald-400"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-pixel text-slate-300 mb-1">Event Status</label>
-                  <select
-                    value={editingEvent.status || 'open'}
-                    onChange={e => setEditingEvent({ ...editingEvent, status: e.target.value as EventStatus })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100"
-                  >
-                    <option value="open">Registration Open</option>
-                    <option value="active">Active Speed Dating Live</option>
-                    <option value="completed">Completed / Goal Met</option>
-                    <option value="draft">Draft Mode</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-pixel text-slate-300 mb-1">Max Capacity</label>
-                  <input
-                    type="number"
-                    value={editingEvent.maxCapacity}
-                    onChange={e => setEditingEvent({ ...editingEvent, maxCapacity: Number(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block text-xs font-pixel text-slate-300 mb-1">Venue Name</label>
+                <label className="block text-xs font-pixel text-slate-300 mb-1">
+                  {language === 'fr' ? 'Objectif de Collecte ($ USD) *' : 'Fundraising Goal ($ USD) *'}
+                </label>
                 <input
-                  type="text"
-                  value={editingEvent.venueName}
-                  onChange={e => setEditingEvent({ ...editingEvent, venueName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100"
+                  type="number"
+                  required
+                  min="50"
+                  value={editingEvent.fundraisingGoal}
+                  onChange={e => setEditingEvent({ ...editingEvent, fundraisingGoal: Number(e.target.value) })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-pixel text-emerald-400 focus:outline-none focus:border-emerald-400"
                 />
               </div>
+            </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setEditingEvent(null)}
-                  className="px-4 py-2 border border-slate-700 text-xs font-retro text-slate-400 rounded-lg"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-pixel text-slate-300 mb-1">
+                  {language === 'fr' ? 'Statut de l’événement' : 'Event Status'}
+                </label>
+                <select
+                  value={editingEvent.status || 'open'}
+                  onChange={e => setEditingEvent({ ...editingEvent, status: e.target.value as EventStatus })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-pixel text-xs rounded-lg shadow"
-                >
-                  Save Changes
-                </button>
+                  <option value="open">{language === 'fr' ? 'Inscriptions Ouvertes' : 'Registration Open'}</option>
+                  <option value="active">{language === 'fr' ? 'Speed Dating en Direct' : 'Active Speed Dating Live'}</option>
+                  <option value="completed">{language === 'fr' ? 'Terminé / Objectif Atteint' : 'Completed / Goal Met'}</option>
+                  <option value="draft">{language === 'fr' ? 'Brouillon' : 'Draft Mode'}</option>
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
+              <div>
+                <label className="block text-xs font-pixel text-slate-300 mb-1">
+                  {language === 'fr' ? 'Capacité Maximale' : 'Max Capacity'}
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  value={editingEvent.maxCapacity}
+                  onChange={e => setEditingEvent({ ...editingEvent, maxCapacity: Number(e.target.value) })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-pixel text-slate-300 mb-1">
+                {language === 'fr' ? 'Lieu / Salle' : 'Venue Name & Address'}
+              </label>
+              <input
+                type="text"
+                value={editingEvent.venueName}
+                onChange={e => setEditingEvent({ ...editingEvent, venueName: e.target.value })}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+              />
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setEditingEvent(null)}
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2 border border-slate-700 text-xs font-retro text-slate-300 hover:text-white rounded-xl transition-colors"
+              >
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                className="w-full sm:w-auto min-h-[44px] px-6 py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95"
+              >
+                {language === 'fr' ? 'Enregistrer les Modifications' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </CustomModal>
       )}
+
+      {/* Custom Confirm Modal: Delete Event */}
+      <CustomConfirmModal
+        isOpen={Boolean(eventToDelete)}
+        onClose={() => setEventToDelete(null)}
+        onConfirm={() => {
+          if (eventToDelete) {
+            onDeleteEvent(eventToDelete.id);
+            setEventToDelete(null);
+          }
+        }}
+        title={language === 'fr' ? 'Supprimer cet Événement ?' : 'Delete Event Campaign?'}
+        message={
+          eventToDelete ? (
+            <div className="space-y-2">
+              <p>
+                {language === 'fr'
+                  ? 'Êtes-vous certain de vouloir supprimer la soirée caritative :'
+                  : 'Are you sure you want to permanently delete this fundraising event:'}
+              </p>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-rose-500/40 text-rose-300 font-pixel text-xs">
+                "{eventToDelete.title}"
+              </div>
+              <p className="text-slate-400 text-xs">
+                {language === 'fr'
+                  ? 'Toutes les inscriptions associées, profils de speed dating et reçus fiscaux seront également supprimés. Cette action est irréversible.'
+                  : 'All linked participant registrations, speed dating records, and receipts will be removed. This cannot be undone.'}
+              </p>
+            </div>
+          ) : null
+        }
+        confirmLabel={language === 'fr' ? 'Oui, Supprimer Définitivement' : 'Yes, Delete Permanently'}
+        cancelLabel={language === 'fr' ? 'Annuler' : 'Keep Event'}
+        danger={true}
+        theme="rose"
+        iconType="trash"
+      />
+
+      {/* Custom Confirm Modal: Delete Registration */}
+      <CustomConfirmModal
+        isOpen={Boolean(regToDelete)}
+        onClose={() => setRegToDelete(null)}
+        onConfirm={() => {
+          if (regToDelete) {
+            onDeleteRegistration(regToDelete.id);
+            setRegToDelete(null);
+          }
+        }}
+        title={language === 'fr' ? 'Annuler cette Inscription ?' : 'Cancel Registration?'}
+        message={
+          regToDelete ? (
+            <div className="space-y-2">
+              <p>
+                {language === 'fr'
+                  ? 'Voulez-vous annuler le billet et retirer le participant :'
+                  : 'Do you want to cancel the ticket and remove attendee:'}
+              </p>
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-rose-500/40 text-slate-200 font-retro text-xs">
+                <span className="font-pixel text-pink-400 block">{regToDelete.attendeeName}</span>
+                <span className="text-slate-400 block text-[11px]">
+                  {regToDelete.attendeeEmail} · Billet #{regToDelete.ticketCode}
+                </span>
+                <span className="text-emerald-400 font-pixel text-[11px] block mt-1">
+                  Total payé: ${regToDelete.totalAmount}
+                </span>
+              </div>
+            </div>
+          ) : null
+        }
+        confirmLabel={language === 'fr' ? 'Confirmer l’Annulation' : 'Confirm Cancellation'}
+        cancelLabel={language === 'fr' ? 'Garder l’Inscription' : 'Keep Registration'}
+        danger={true}
+        theme="rose"
+        iconType="trash"
+      />
+
+      {/* Custom Modal: Offline Donation / Sponsor Match */}
+      <OfflineDonationModal
+        isOpen={Boolean(eventForDonation)}
+        event={eventForDonation}
+        language={language}
+        onClose={() => setEventForDonation(null)}
+        onSubmitDonation={(eventId, amount, donorName) => {
+          onAddOfflineDonation(eventId, amount, donorName);
+          setEventForDonation(null);
+        }}
+      />
     </div>
   );
 };

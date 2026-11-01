@@ -5,6 +5,7 @@ import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 import { Heart, MessageCircle, Sparkles, Trophy, ArrowRight, RotateCcw } from 'lucide-react';
+import { CustomConfirmModal } from './CustomConfirmModal';
 
 interface MatchRevealScreenProps {
   results: DateResult[];
@@ -26,6 +27,7 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
   onBackToLobby,
 }) => {
   const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const t = TRANSLATIONS[language];
 
   const mutualMatches = results.filter(r => r.isMutualMatch);
@@ -195,7 +197,7 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
           <button
             onClick={() => {
               audio.playSelect();
-              onResetDates();
+              setIsResetConfirmOpen(true);
             }}
             className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-400 hover:text-slate-200 rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-95"
           >
@@ -215,6 +217,36 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Custom Confirm Modal: Reset Speed Dates */}
+      <CustomConfirmModal
+        isOpen={isResetConfirmOpen}
+        onClose={() => setIsResetConfirmOpen(false)}
+        onConfirm={() => {
+          setIsResetConfirmOpen(false);
+          onResetDates();
+        }}
+        title={language === 'fr' ? 'Recommencer le Speed Dating ?' : 'Reset Speed Dating Round?'}
+        message={
+          <div className="space-y-2">
+            <p>
+              {language === 'fr'
+                ? 'Voulez-vous réinitialiser toutes vos rencontres et recommencer une nouvelle session ?'
+                : 'Would you like to reset your dating progress and start a fresh round of dates?'}
+            </p>
+            <p className="text-slate-400 text-xs">
+              {language === 'fr'
+                ? 'Vos choix secrets précédents seront effacés pour vous permettre de re-découvrir les prétendants.'
+                : 'Your previous ballots and mutual match tallies will be cleared so you can date again.'}
+            </p>
+          </div>
+        }
+        confirmLabel={language === 'fr' ? 'Oui, Recommencer' : 'Yes, Reset & Date Again'}
+        cancelLabel={language === 'fr' ? 'Garder mes Résultats' : 'Keep Current Results'}
+        danger={false}
+        theme="cyan"
+        iconType="reset"
+      />
     </div>
   );
 };
