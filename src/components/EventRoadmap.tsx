@@ -131,25 +131,25 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
   };
 
   return (
-    <section aria-label="Event Roadmap" className="w-full bg-slate-950/90 border-b border-pink-500/20 px-3 sm:px-6 py-2">
+    <section aria-label="Event Roadmap" className="w-full bg-slate-950/90 border-b border-pink-500/20 px-3 sm:px-6 py-1.5 sm:py-2">
       <div className="max-w-7xl mx-auto">
         {/* Compact Bar Mode: Current Stage Indicator + Toggle Button */}
         <div className="flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none min-w-0 flex-1">
             {/* Roadmap Label Pill */}
             <button
               onClick={() => {
                 audio.playSelect();
                 setIsExpanded(prev => !prev);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-lg bg-slate-900 border border-pink-500/30 hover:border-pink-500 text-xs font-pixel text-pink-400 shrink-0 transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[44px] rounded-lg bg-slate-900 border border-pink-500/30 hover:border-pink-500 text-xs font-pixel text-pink-400 shrink-0 transition-all active:scale-95"
               title={language === 'fr' ? 'Afficher le parcours de l’événement' : 'Toggle event roadmap'}
             >
-              <Map className="w-4 h-4 text-cyan-400" />
+              <Map className="w-4 h-4 text-cyan-400 shrink-0" />
               <span className="hidden xs:inline">
                 {language === 'fr' ? 'PARCOURS' : 'ROADMAP'}
               </span>
-              <span className="text-[10px] text-slate-400 font-retro">
+              <span className="text-[10px] text-slate-300 font-retro tabular-nums">
                 ({currentStepObj.stepNumber}/6)
               </span>
               {isExpanded ? (
@@ -182,7 +182,7 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
                       )}
                       <span>{st.titleKey.split('.')[1]?.trim() || st.titleKey}</span>
                       {st.badge && (
-                        <span className="text-[9px] bg-slate-800 px-1 rounded text-cyan-300">
+                        <span className="text-[9px] bg-slate-800 px-1 rounded text-cyan-300 tabular-nums">
                           {st.badge}
                         </span>
                       )}
@@ -196,8 +196,8 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
             </div>
 
             {/* Active Stage Label on Mobile / Tablet */}
-            <div className="lg:hidden flex items-center gap-1.5 text-xs font-retro text-slate-300 truncate">
-              <span className="text-pink-400 font-bold font-pixel text-[11px]">
+            <div className="lg:hidden flex items-center gap-1.5 text-xs font-retro text-slate-300 min-w-0 truncate">
+              <span className="text-pink-400 font-bold font-pixel text-[10px] sm:text-[11px] truncate">
                 {currentStepObj.titleKey}
               </span>
               <span className="text-slate-500 hidden sm:inline">·</span>
@@ -211,7 +211,7 @@ export const EventRoadmap: React.FC<EventRoadmapProps> = ({
           {nextStep && (
             <button
               onClick={() => handleStepClick(nextStep.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-lg bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-500 hover:to-rose-400 text-slate-950 font-pixel text-xs shrink-0 shadow transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[44px] rounded-lg bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-500 hover:to-rose-400 text-slate-950 font-pixel text-[11px] sm:text-xs shrink-0 shadow transition-all active:scale-95"
             >
               <span>{language === 'fr' ? 'Suivant' : 'Next'}</span>
               <ArrowRight className="w-3.5 h-3.5" />

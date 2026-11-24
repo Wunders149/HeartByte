@@ -39,12 +39,12 @@ export const CommunityFundraiserBar: React.FC<CommunityFundraiserBarProps> = ({
         </div>
 
         {/* Register & Support Button */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
           <button
             onClick={onOpenRegister}
-            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md active:translate-y-0.5 transition-all flex items-center gap-1.5"
+            className="w-full md:w-auto min-h-[44px] px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5"
           >
-            <Heart className="w-3.5 h-3.5 fill-slate-950" />
+            <Heart className="w-3.5 h-3.5 fill-slate-950 shrink-0" />
             <span>{t.registerDonateBtn}</span>
           </button>
         </div>
@@ -54,26 +54,26 @@ export const CommunityFundraiserBar: React.FC<CommunityFundraiserBarProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-3 py-2 border-y border-slate-800 text-xs font-retro">
         <div>
           <div className="text-slate-400 text-[10px]">{language === 'fr' ? 'COLLECTÉ' : 'TOTAL RAISED'}</div>
-          <div className="font-pixel text-sm md:text-base text-emerald-400">
+          <div className="font-pixel text-sm md:text-base text-emerald-400 tabular-nums">
             ${event.currentFundsRaised.toLocaleString()}
           </div>
         </div>
         <div>
           <div className="text-slate-400 text-[10px]">{language === 'fr' ? 'OBJECTIF' : 'GOAL TARGET'}</div>
-          <div className="font-pixel text-sm md:text-base text-slate-200">
+          <div className="font-pixel text-sm md:text-base text-slate-200 tabular-nums">
             ${event.fundraisingGoal.toLocaleString()}
           </div>
         </div>
         <div>
           <div className="text-slate-400 text-[10px]">{language === 'fr' ? 'PROGRESSION' : 'COMMUNITY PROGRESS'}</div>
-          <div className="font-pixel text-sm md:text-base text-pink-400">
+          <div className="font-pixel text-sm md:text-base text-pink-400 tabular-nums">
             {percentage}% {language === 'fr' ? 'FINANCÉ' : 'FUNDED'}
           </div>
         </div>
         <div>
           <div className="text-slate-400 text-[10px]">{language === 'fr' ? 'PARTICIPANTS INSCRITS' : 'REGISTERED DATERS'}</div>
-          <div className="font-pixel text-sm md:text-base text-cyan-300 flex items-center gap-1">
-            <Users className="w-3.5 h-3.5" />
+          <div className="font-pixel text-sm md:text-base text-cyan-300 flex items-center gap-1 tabular-nums">
+            <Users className="w-3.5 h-3.5 shrink-0" />
             <span>{registrationCount} / {event.maxCapacity}</span>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
 import { PlayerProfile, Suitor, CommunityEvent } from '../types/dating';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { Heart, Sparkles, Play, Plus, Building2, Users, ShieldCheck } from 'lucide-react';
+import { Heart, Sparkles, Play, Building2 } from 'lucide-react';
 
 interface TitleScreenProps {
   playerProfile: PlayerProfile;
@@ -12,7 +12,6 @@ interface TitleScreenProps {
   language?: Language;
   onStartGame: () => void;
   onOpenEventsDirectory: () => void;
-  onOpenCreateEvent: () => void;
   onOpenAvatarCreator: () => void;
 }
 
@@ -23,14 +22,13 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   language = 'en',
   onStartGame,
   onOpenEventsDirectory,
-  onOpenCreateEvent,
   onOpenAvatarCreator,
 }) => {
   const t = TRANSLATIONS[language];
   const totalRaised = events.reduce((sum, e) => sum + e.currentFundsRaised, 0);
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] flex flex-col items-center justify-center py-6 sm:py-12 px-3 sm:px-4 overflow-hidden">
+    <div className="relative min-h-[calc(100dvh-136px)] flex flex-col items-center justify-center py-5 sm:py-12 px-3 sm:px-4 overflow-hidden">
       {/* Background Retro Grid & Glow */}
       <div className="absolute inset-0 bg-retro-grid opacity-25 pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-pink-500/15 rounded-full blur-[100px] pointer-events-none" />
@@ -38,34 +36,34 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       {/* Main Title Hero Card */}
       <div className="relative z-10 max-w-3xl w-full text-center">
         {/* Retro Header Kicker */}
-        <div className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1 bg-pink-950/70 border border-pink-500/40 rounded-full font-retro text-[11px] sm:text-xs text-pink-300 mb-4 sm:mb-6">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1 bg-pink-950/70 border border-pink-500/40 rounded-full font-retro text-[11px] sm:text-xs text-pink-300 mb-3 sm:mb-6">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
           <span>{language === 'fr' ? 'COLLECTE COMMUNAUTAIRE & RENCONTRES ÉCLAIR' : 'COMMUNITY FUNDRAISER SPEED DATING'}</span>
         </div>
 
         {/* Game Title with 3D Pixel Glow */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-pixel text-pink-400 tracking-tighter leading-tight drop-shadow-[0_4px_12px_rgba(244,63,94,0.4)] text-wrap-balance mb-3 sm:mb-4">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-pixel text-pink-400 tracking-tighter leading-tight drop-shadow-[0_4px_12px_rgba(244,63,94,0.4)] text-wrap-balance mb-2.5 sm:mb-4">
           HeartByte
         </h1>
 
-        <div className="font-retro text-xs sm:text-lg text-cyan-300 font-bold tracking-widest uppercase mb-3 sm:mb-4 px-2">
+        <div className="font-retro text-xs sm:text-lg text-cyan-300 font-bold tracking-widest uppercase mb-2.5 sm:mb-4 px-2">
           {t.tagline}
         </div>
 
-        <p className="text-xs sm:text-sm text-slate-300 font-retro max-w-xl mx-auto mb-6 sm:mb-8 px-2 leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-300 font-retro max-w-xl mx-auto mb-5 sm:mb-8 px-2 leading-relaxed">
           {language === 'fr'
-            ? 'Créez des événements de speed dating caritatifs, inscrivez-vous avec des billets solidaires et rencontrez des célibataires géniaux dans une ambiance arcade 8-bit !'
-            : 'Create speed dating fundraisers, register attendees with donation ticket tiers, and meet incredible local daters—all styled as a vibrant 8-bit retro arcade adventure!'}
+            ? 'Participez aux soirées de speed dating caritatives publiées par l’administrateur, inscrivez-vous avec des billets solidaires et rencontrez des célibataires géniaux dans une ambiance arcade 8-bit !'
+            : 'Join speed dating fundraisers posted by our admin, register with donation ticket tiers, and meet incredible local daters—all styled as a vibrant 8-bit retro arcade adventure!'}
         </p>
 
         {/* Community Impact Pill */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 bg-slate-900 border-2 border-emerald-500/60 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 shadow-lg mb-6 sm:mb-8 text-xs font-retro">
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 bg-slate-900 border-2 border-emerald-500/60 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 shadow-lg mb-5 sm:mb-8 text-xs font-retro">
           <span className="text-slate-400">{t.totalFundsRaised}</span>
-          <span className="font-pixel text-emerald-400 text-sm">
+          <span className="font-pixel text-emerald-400 text-sm tabular-nums">
             ${totalRaised.toLocaleString()}
           </span>
           <span className="text-slate-600 hidden xs:inline">·</span>
-          <span className="text-cyan-400 font-pixel text-xs">
+          <span className="text-cyan-400 font-pixel text-xs tabular-nums">
             {events.length} {language === 'fr' ? 'Causes Actives' : 'Active Events'}
           </span>
         </div>
@@ -149,18 +147,6 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span>{t.customizeSprite}</span>
           </button>
-
-          {/* Organizer-only Access to Create Events */}
-          <button
-            onClick={() => {
-              audio.playSelect();
-              onOpenCreateEvent();
-            }}
-            className="sm:col-span-2 min-h-[44px] px-4 sm:px-5 py-2.5 bg-slate-900/90 hover:bg-slate-800 border border-yellow-500/50 hover:border-yellow-400 text-yellow-300 font-retro text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
-          >
-            <ShieldCheck className="w-4 h-4 text-yellow-400" />
-            <span>{language === 'fr' ? 'Accès Organisateur / Admin (Créer un Événement)' : 'Organizer Admin Portal (Create Event)'}</span>
-          </button>
         </div>
 
         {/* Retro Insert Coin Insert Text */}
@@ -179,14 +165,14 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           <ul className="text-xs font-retro text-slate-400 space-y-1.5 list-disc list-inside">
             {language === 'fr' ? (
               <>
-                <li>Les organisateurs créent des soirées speed dating avec objectifs de dons & paliers de billets.</li>
+                <li>Seuls les administrateurs publient les soirées speed dating officielles et leurs objectifs de dons.</li>
                 <li>Les participants s’inscrivent, choisissent leur pass solidaire et reçoivent un badge rétro 8-bit.</li>
                 <li>Participez à des tête-à-tête de 45 secondes avec répliques à choix multiples et jauge d’alchimie.</li>
                 <li>Les matchs mutuels débloquent le chat rétro, et 100% des bénéfices financent la cause locale !</li>
               </>
             ) : (
               <>
-                <li>Community organizers create speed dating events with fundraising goals & ticket tiers.</li>
+                <li>Only verified admins publish official speed dating fundraisers and ticket tiers.</li>
                 <li>Users register, select their donation pass, and generate an 8-bit ticket badge.</li>
                 <li>Attendees participate in 45-second speed dating rounds with dialogue & chemistry meters.</li>
                 <li>Mutual matches unlock retro chat, and 100% of event proceeds fuel the community cause!</li>

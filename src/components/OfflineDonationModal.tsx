@@ -63,7 +63,7 @@ export const OfflineDonationModal: React.FC<OfflineDonationModalProps> = ({
             value={sponsorName}
             onChange={e => setSponsorName(e.target.value)}
             placeholder={language === 'fr' ? 'ex. Café Rétro Paris & Associés' : 'e.g. Local Coffee Roasters Match'}
-            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-retro text-slate-100 focus:outline-none focus:border-emerald-400"
+            className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-emerald-400"
           />
         </div>
 
@@ -80,14 +80,14 @@ export const OfflineDonationModal: React.FC<OfflineDonationModalProps> = ({
               required
               value={donationAmount}
               onChange={e => setDonationAmount(Number(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3.5 py-2.5 text-xs font-pixel text-emerald-400 focus:outline-none focus:border-emerald-400"
+              className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3.5 py-2.5 text-base sm:text-xs font-pixel text-emerald-400 focus:outline-none focus:border-emerald-400"
             />
           </div>
         </div>
 
         {/* Quick Amount Pills */}
-        <div className="flex items-center gap-2 pt-1">
-          <span className="text-[10px] font-retro text-slate-400">{language === 'fr' ? 'Montants rapides :' : 'Quick select:'}</span>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-[10px] font-retro text-slate-400 w-full sm:w-auto">{language === 'fr' ? 'Montants rapides :' : 'Quick select:'}</span>
           {[50, 100, 250, 500].map(amount => (
             <button
               key={amount}
@@ -96,7 +96,7 @@ export const OfflineDonationModal: React.FC<OfflineDonationModalProps> = ({
                 audio.playSelect();
                 setDonationAmount(amount);
               }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-pixel transition-colors ${
+              className={`min-h-[44px] px-3 py-1.5 rounded-lg text-xs font-pixel transition-all active:scale-95 tabular-nums ${
                 donationAmount === amount
                   ? 'bg-emerald-500 text-slate-950 font-bold'
                   : 'bg-slate-950 border border-slate-700 text-slate-300 hover:border-slate-500'

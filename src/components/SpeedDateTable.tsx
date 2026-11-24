@@ -355,17 +355,17 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
         </div>
 
         {/* 45s Speed Date Timer */}
-        <div className="flex items-center justify-between sm:justify-center gap-2">
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center justify-between sm:justify-center gap-2">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-lg">
             <Clock className={`w-4 h-4 ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-cyan-400'}`} />
-            <span className={`font-pixel text-xs ${timeLeft <= 10 ? 'text-red-400 font-bold' : 'text-slate-200'}`}>
+            <span className={`font-pixel text-xs tabular-nums ${timeLeft <= 10 ? 'text-red-400 font-bold' : 'text-slate-200'}`}>
               00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={onSkipToNext}
-              className="text-[11px] font-retro text-slate-400 hover:text-slate-200 underline underline-offset-2 p-1"
+              className="min-h-[44px] px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:border-slate-500 text-xs font-retro text-slate-300 hover:text-white transition-all active:scale-95"
             >
               {t.skipDate}
             </button>
@@ -375,7 +375,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
                   audio.playSelect();
                   onExitToLobby();
                 }}
-                className="text-[11px] font-retro text-amber-400 hover:text-amber-300 underline underline-offset-2 p-1"
+                className="min-h-[44px] px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-950/30 hover:bg-amber-950/60 text-xs font-retro text-amber-300 hover:text-amber-200 transition-all active:scale-95"
               >
                 {t.pauseAndExitToLobby}
               </button>
@@ -385,7 +385,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
 
         {/* Live Chemistry Meter */}
         <div className="flex items-center gap-3 w-full sm:w-auto sm:min-w-[180px]">
-          <div className="flex items-center gap-1 font-pixel text-xs text-pink-400 shrink-0">
+          <div className="flex items-center gap-1 font-pixel text-xs text-pink-400 shrink-0 tabular-nums">
             <Heart className="w-4 h-4 fill-pink-500 text-pink-500" />
             <span>{chemistry}%</span>
           </div>
@@ -675,7 +675,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 mb-4 sm:mb-6 text-left">
               <div className="flex justify-between items-center mb-1.5 sm:mb-2">
                 <span className="text-xs font-retro text-slate-400">{t.finalChemistryScore}</span>
-                <span className="font-pixel text-xs sm:text-sm text-pink-400">{chemistry}%</span>
+                <span className="font-pixel text-xs sm:text-sm text-pink-400 tabular-nums">{chemistry}%</span>
               </div>
               <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden mb-3 sm:mb-4">
                 <div
@@ -693,7 +693,7 @@ export const SpeedDateTable: React.FC<SpeedDateTableProps> = ({
                 value={playerNotes}
                 onChange={e => setPlayerNotes(e.target.value)}
                 placeholder={t.pdaNotesPlaceholder}
-                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500"
                 maxLength={80}
               />
             </div>

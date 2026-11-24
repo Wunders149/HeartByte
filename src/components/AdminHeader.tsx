@@ -42,10 +42,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur border-b-2 border-yellow-500/40 px-3 sm:px-6 md:px-8 py-2.5 sm:py-3">
+    <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur border-b-2 border-yellow-500/40 px-3 sm:px-6 md:px-8 py-2 sm:py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-6 md:gap-8">
         {/* Zone 1: Admin Brand Wordmark */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           {/* Mobile Menu Toggle for Admin Tabs */}
           <button
             onClick={() => {
@@ -53,20 +53,21 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               setMobileMenuOpen(prev => !prev);
             }}
             aria-label="Toggle admin menu"
-            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-yellow-400 hover:text-yellow-300 hover:border-yellow-500/50 transition-colors"
+            aria-expanded={mobileMenuOpen}
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-yellow-400 hover:text-yellow-300 hover:border-yellow-500/50 transition-colors shrink-0 active:scale-95"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="p-1 sm:p-1.5 bg-yellow-400/20 border border-yellow-400/60 rounded text-yellow-400">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="p-1.5 bg-yellow-400/20 border border-yellow-400/60 rounded text-yellow-400 shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </span>
-            <div className="flex flex-col">
-              <span className="font-pixel text-yellow-400 text-xs sm:text-sm tracking-tight whitespace-nowrap">
+            <div className="flex flex-col min-w-0">
+              <span className="font-pixel text-yellow-400 text-xs sm:text-sm tracking-tight whitespace-nowrap truncate">
                 HeartByte
               </span>
-              <span className="font-retro text-[9px] sm:text-[10px] text-slate-400 whitespace-nowrap hidden xs:inline">
+              <span className="font-retro text-[10px] text-slate-400 whitespace-nowrap hidden sm:inline">
                 {t.brandSubtitleAdmin}
               </span>
             </div>
@@ -148,14 +149,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <span>{t.newCampaign}</span>
           </button>
 
-          {/* CRT scanlines toggle */}
+          {/* CRT scanlines toggle (Desktop >= md) */}
           <button
             onClick={() => {
               audio.playSelect();
               onToggleCrt();
             }}
             title={crtEnabled ? 'Disable CRT Scanlines' : 'Enable CRT Scanlines'}
-            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
+            className={`hidden md:flex min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 items-center justify-center gap-1 ${
               crtEnabled
                 ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
@@ -165,14 +166,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <span className="font-retro hidden xl:inline text-[10px]">CRT</span>
           </button>
 
-          {/* 8-bit BGM Toggle */}
+          {/* 8-bit BGM Toggle (Desktop >= md) */}
           <button
             onClick={() => {
               audio.playSelect();
               onToggleBgm();
             }}
             title={bgmActive ? 'Mute Chiptune BGM' : 'Play 8-Bit BGM'}
-            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
+            className={`hidden md:flex min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 items-center justify-center gap-1 ${
               bgmActive
                 ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
@@ -182,14 +183,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <span className="font-retro hidden xl:inline text-[10px]">BGM</span>
           </button>
 
-          {/* Master Sound FX Toggle */}
+          {/* Master Sound FX Toggle (Desktop >= md) */}
           <button
             onClick={() => {
               audio.playSelect();
               onToggleMute();
             }}
             title={isMuted ? 'Unmute 8-Bit Sound FX' : 'Mute Sound FX'}
-            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
+            className={`hidden md:flex min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 items-center justify-center gap-1 ${
               !isMuted
                 ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
@@ -204,9 +205,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               audio.playSelect();
               onExitToPublic();
             }}
-            className="min-h-[44px] px-3.5 py-2 text-xs font-pixel text-slate-950 bg-yellow-400 hover:bg-yellow-300 active:scale-95 rounded-lg shadow-md transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5"
+            className="min-h-[44px] px-3 sm:px-3.5 py-2 text-xs font-pixel text-slate-950 bg-yellow-400 hover:bg-yellow-300 active:scale-95 rounded-lg shadow-md transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 shrink-0" />
             <span className="hidden xs:inline">{t.exitToPublic}</span>
           </button>
         </div>
@@ -214,7 +215,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
       {/* Mobile Admin Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden mt-3 pt-3 border-t border-slate-800 animate-fade-in bg-slate-950/95 rounded-xl p-3 space-y-1.5 shadow-2xl">
+        <div className="md:hidden mt-2.5 pt-3 border-t border-slate-800 animate-fade-in bg-slate-950/95 rounded-xl p-3 space-y-1.5 shadow-2xl max-h-[75dvh] overflow-y-auto">
           <div className="text-[10px] font-pixel text-yellow-400 px-3 py-1 uppercase tracking-wider">
             {language === 'fr' ? 'Navigation Organisateur' : 'Organizer Navigation'}
           </div>
@@ -279,7 +280,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <span className="text-[10px] font-pixel opacity-70">04</span>
           </button>
 
-          <div className="pt-2 border-t border-slate-900">
+          <div className="pt-2 border-t border-slate-900 space-y-2.5">
             <button
               onClick={() => {
                 audio.playSelect();
@@ -291,6 +292,54 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               <Plus className="w-4 h-4" />
               <span>{t.newCampaign}</span>
             </button>
+
+            {/* Retro Display & Audio Controls for Mobile */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onToggleCrt();
+                }}
+                className={`min-h-[44px] px-2 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                  crtEnabled
+                    ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
+                    : 'border-slate-800 text-slate-400 bg-slate-900'
+                }`}
+              >
+                <Monitor className="w-4 h-4" />
+                <span>CRT</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onToggleBgm();
+                }}
+                className={`min-h-[44px] px-2 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                  bgmActive
+                    ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
+                    : 'border-slate-800 text-slate-400 bg-slate-900'
+                }`}
+              >
+                <Music className="w-4 h-4" />
+                <span>BGM</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onToggleMute();
+                }}
+                className={`min-h-[44px] px-2 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                  !isMuted
+                    ? 'border-yellow-400 text-yellow-300 bg-yellow-950/40'
+                    : 'border-slate-800 text-slate-400 bg-slate-900'
+                }`}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                <span>{isMuted ? 'OFF' : 'SFX'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

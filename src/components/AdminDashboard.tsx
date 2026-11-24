@@ -36,6 +36,8 @@ interface AdminDashboardProps {
   suitors: Suitor[];
   dateResults: DateResult[];
   language?: Language;
+  activeTab?: 'events' | 'attendees' | 'speeddating' | 'analytics';
+  onTabChange?: (tab: 'events' | 'attendees' | 'speeddating' | 'analytics') => void;
   onUpdateEvent: (updatedEvent: CommunityEvent) => void;
   onDeleteEvent: (eventId: string) => void;
   onOpenCreateEvent: () => void;
@@ -51,6 +53,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   suitors,
   dateResults,
   language = 'fr',
+  activeTab: controlledTab,
+  onTabChange,
   onUpdateEvent,
   onDeleteEvent,
   onOpenCreateEvent,
@@ -59,7 +63,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddOfflineDonation,
   onBackToLobby,
 }) => {
-  const [activeTab, setActiveTab] = useState<'events' | 'attendees' | 'speeddating' | 'analytics'>('events');
+  const [internalTab, setInternalTab] = useState<'events' | 'attendees' | 'speeddating' | 'analytics'>('events');
+  const activeTab = controlledTab ?? internalTab;
+  const setActiveTab = (tab: 'events' | 'attendees' | 'speeddating' | 'analytics') => {
+    if (onTabChange) onTabChange(tab);
+    setInternalTab(tab);
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEventFilter, setSelectedEventFilter] = useState<string>('all');
   const t = TRANSLATIONS[language];
@@ -125,40 +134,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4">
+    <div className="max-w-7xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
       {/* Admin Top Header & Nav */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-6">
         <div>
           <button
             onClick={() => {
               audio.playSelect();
               onBackToLobby();
             }}
-            className="text-xs font-retro text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 mb-2 transition-colors"
+            className="min-h-[40px] text-xs font-retro text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 mb-1.5 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Return to User Lobby</span>
+            <span>{language === 'fr' ? 'Retour à l’Espace Public' : 'Return to User Lobby'}</span>
           </button>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 bg-yellow-400/20 border border-yellow-400/50 rounded-lg text-yellow-400">
+            <span className="p-1.5 bg-yellow-400/20 border border-yellow-400/50 rounded-lg text-yellow-400 shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </span>
-            <h1 className="text-2xl md:text-3xl font-pixel text-slate-100">
-              Organizer Admin Console
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-pixel text-slate-100">
+              {language === 'fr' ? 'Console Organisateur' : 'Organizer Admin Console'}
             </h1>
           </div>
           <p className="text-xs font-retro text-slate-400 mt-1">
-            Manage fundraising campaigns, check-in attendees, assign speed dating tables, and view real-time donor receipts.
+            {language === 'fr'
+              ? 'Gérez les soirées caritatives, validez les billets sur place et suivez les dons en temps réel.'
+              : 'Manage fundraising campaigns, check-in attendees, assign speed dating tables, and view real-time donor receipts.'}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-retro text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+            className="min-h-[44px] px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-retro text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors active:scale-95"
           >
-            <Download className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Export CSV</span>
+            <Download className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span>{language === 'fr' ? 'Exporter CSV' : 'Export CSV'}</span>
           </button>
 
           <button
@@ -166,114 +177,114 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               audio.playSelect();
               onOpenCreateEvent();
             }}
-            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md transition-all active:translate-y-0.5 flex items-center gap-1.5"
+            className="min-h-[44px] px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Create Campaign</span>
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>{language === 'fr' ? 'Nouvelle Soirée' : 'Create Campaign'}</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4">
-          <div className="text-[11px] font-retro text-slate-400 flex items-center justify-between mb-1">
-            <span>TOTAL FUNDS RAISED</span>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 sm:mb-8">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4">
+          <div className="text-[10px] sm:text-[11px] font-retro text-slate-400 flex items-center justify-between gap-1 mb-1">
+            <span className="truncate">{language === 'fr' ? 'FONDS RÉCOLTÉS' : 'TOTAL FUNDS RAISED'}</span>
+            <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
           </div>
-          <div className="font-pixel text-lg sm:text-xl text-emerald-400">
+          <div className="font-pixel text-base sm:text-xl text-emerald-400 tabular-nums">
             ${totalRevenue.toLocaleString()}
           </div>
-          <div className="text-[10px] font-retro text-slate-500 mt-1">
-            Across {events.length} community events
+          <div className="text-[10px] font-retro text-slate-500 mt-1 truncate">
+            {language === 'fr' ? `Sur ${events.length} soirées` : `Across ${events.length} events`}
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4">
-          <div className="text-[11px] font-retro text-slate-400 flex items-center justify-between mb-1">
-            <span>REGISTERED ATTENDEES</span>
-            <Users className="w-4 h-4 text-pink-400" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4">
+          <div className="text-[10px] sm:text-[11px] font-retro text-slate-400 flex items-center justify-between gap-1 mb-1">
+            <span className="truncate">{language === 'fr' ? 'INSCRITS' : 'REGISTERED'}</span>
+            <Users className="w-4 h-4 text-pink-400 shrink-0" />
           </div>
-          <div className="font-pixel text-lg sm:text-xl text-pink-400">
+          <div className="font-pixel text-base sm:text-xl text-pink-400 tabular-nums">
             {totalRegistered}
           </div>
-          <div className="text-[10px] font-retro text-slate-500 mt-1">
-            {totalCheckedIn} checked in at venue
+          <div className="text-[10px] font-retro text-slate-500 mt-1 truncate tabular-nums">
+            {totalCheckedIn} {language === 'fr' ? 'enregistrés sur place' : 'checked in'}
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4">
-          <div className="text-[11px] font-retro text-slate-400 flex items-center justify-between mb-1">
-            <span>VENUE CHECK-IN RATE</span>
-            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4">
+          <div className="text-[10px] sm:text-[11px] font-retro text-slate-400 flex items-center justify-between gap-1 mb-1">
+            <span className="truncate">{language === 'fr' ? 'TAUX D’ACCUEIL' : 'CHECK-IN RATE'}</span>
+            <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
           </div>
-          <div className="font-pixel text-lg sm:text-xl text-cyan-400">
+          <div className="font-pixel text-base sm:text-xl text-cyan-400 tabular-nums">
             {totalRegistered > 0 ? Math.round((totalCheckedIn / totalRegistered) * 100) : 0}%
           </div>
-          <div className="text-[10px] font-retro text-slate-500 mt-1">
-            {totalCheckedIn} of {totalRegistered} verified
+          <div className="text-[10px] font-retro text-slate-500 mt-1 truncate tabular-nums">
+            {totalCheckedIn} / {totalRegistered} {language === 'fr' ? 'vérifiés' : 'verified'}
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4">
-          <div className="text-[11px] font-retro text-slate-400 flex items-center justify-between mb-1">
-            <span>SPEED DATING MATCHES</span>
-            <Heart className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4">
+          <div className="text-[10px] sm:text-[11px] font-retro text-slate-400 flex items-center justify-between gap-1 mb-1">
+            <span className="truncate">{language === 'fr' ? 'MATCHS' : 'MATCHES'}</span>
+            <Heart className="w-4 h-4 text-yellow-400 fill-yellow-400 shrink-0" />
           </div>
-          <div className="font-pixel text-lg sm:text-xl text-yellow-400">
+          <div className="font-pixel text-base sm:text-xl text-yellow-400 tabular-nums">
             {mutualMatchesCount}
           </div>
-          <div className="text-[10px] font-retro text-slate-500 mt-1">
-            Mutual sparks recorded
+          <div className="text-[10px] font-retro text-slate-500 mt-1 truncate">
+            {language === 'fr' ? 'Étincelles mutuelles' : 'Mutual sparks'}
           </div>
         </div>
       </div>
 
       {/* Main Tab Switcher */}
-      <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl mb-6 overflow-x-auto">
+      <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl mb-5 sm:mb-6 overflow-x-auto scrollbar-none">
         <button
           onClick={() => {
             audio.playSelect();
             setActiveTab('events');
           }}
-          className={`min-h-[42px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap ${
+          className={`min-h-[44px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'events' ? 'bg-pink-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Fundraising Events ({events.length})
+          {t.tabEvents} ({events.length})
         </button>
         <button
           onClick={() => {
             audio.playSelect();
             setActiveTab('attendees');
           }}
-          className={`min-h-[42px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap ${
+          className={`min-h-[44px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'attendees' ? 'bg-pink-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Attendee Check-In Desk ({registrations.length})
+          {t.tabCheckIn} ({registrations.length})
         </button>
         <button
           onClick={() => {
             audio.playSelect();
             setActiveTab('speeddating');
           }}
-          className={`min-h-[42px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap ${
+          className={`min-h-[44px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'speeddating' ? 'bg-pink-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Speed Dating Floor & Bell Control
+          {t.tabFloorBell}
         </button>
         <button
           onClick={() => {
             audio.playSelect();
             setActiveTab('analytics');
           }}
-          className={`min-h-[42px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap ${
+          className={`min-h-[44px] px-3.5 sm:px-4 py-2 text-xs font-retro rounded-lg transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'analytics' ? 'bg-pink-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Financial & Donor Analytics
+          {t.tabAnalytics}
         </button>
       </div>
 
@@ -395,10 +406,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         audio.playSelect();
                         setEditingEvent(event);
                       }}
-                      className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-retro text-xs rounded border border-slate-700 flex items-center justify-center gap-1 transition-colors"
+                      className="min-h-[44px] py-2 px-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-retro text-[11px] sm:text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
                     >
-                      <Edit3 className="w-3 h-3" />
-                      <span>Edit</span>
+                      <Edit3 className="w-3.5 h-3.5 shrink-0" />
+                      <span>{language === 'fr' ? 'Éditer' : 'Edit'}</span>
                     </button>
 
                     <button
@@ -406,11 +417,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         audio.playSelect();
                         setEventForDonation(event);
                       }}
-                      className="min-h-[38px] py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-retro text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
+                      className="min-h-[44px] py-2 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-retro text-[11px] sm:text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
                       title={language === 'fr' ? 'Ajouter un don hors-ligne / mécénat' : 'Add offline donation / sponsor match'}
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+$ Sponsor</span>
+                      <Plus className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">+$ Sponsor</span>
                     </button>
 
                     <button
@@ -418,11 +429,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         audio.playPass();
                         setEventToDelete(event);
                       }}
-                      className="min-h-[38px] py-1.5 px-2 bg-slate-800 hover:bg-rose-950/60 text-rose-400 font-retro text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
+                      className="min-h-[44px] py-2 px-2 bg-slate-800 hover:bg-rose-950/60 text-rose-400 font-retro text-[11px] sm:text-xs rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95"
                       title={language === 'fr' ? 'Supprimer cet événement' : 'Delete event'}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>{language === 'fr' ? 'Supprimer' : 'Delete'}</span>
+                      <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{language === 'fr' ? 'Supprimer' : 'Delete'}</span>
                     </button>
                   </div>
                 </div>
@@ -435,17 +446,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* TAB 2: Attendee Check-In Desk */}
       {activeTab === 'attendees' && (
-        <div className="bg-slate-900 border-2 border-slate-800 rounded-2xl p-4 sm:p-6">
+        <div className="bg-slate-900 border-2 border-slate-800 rounded-2xl p-3.5 sm:p-6">
           {/* Search & Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Search by name, email, ticket code..."
-                className="w-full min-h-[42px] bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                placeholder={language === 'fr' ? 'Rechercher nom, email, code billet...' : 'Search by name, email, ticket code...'}
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -453,30 +464,113 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <select
                 value={selectedEventFilter}
                 onChange={e => setSelectedEventFilter(e.target.value)}
-                className="min-h-[42px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500 flex-1 sm:flex-initial"
+                className="min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-200 focus:outline-none focus:border-pink-500 flex-1 sm:flex-initial"
               >
-                <option value="all">All Events ({registrations.length})</option>
+                <option value="all">{language === 'fr' ? `Tous les événements (${registrations.length})` : `All Events (${registrations.length})`}</option>
                 {events.map(ev => (
                   <option key={ev.id} value={ev.id}>{ev.title}</option>
                 ))}
               </select>
 
-              <div className="text-xs font-retro text-slate-400 whitespace-nowrap">
-                Showing {filteredRegistrations.length} daters
+              <div className="text-xs font-retro text-slate-400 whitespace-nowrap tabular-nums">
+                {language === 'fr' ? `${filteredRegistrations.length} inscrits` : `Showing ${filteredRegistrations.length} daters`}
               </div>
             </div>
           </div>
 
-          {/* Attendee Records Table */}
-          <div className="overflow-x-auto">
+          {/* Mobile Attendee Card List (< md) */}
+          <div className="md:hidden space-y-3">
+            {filteredRegistrations.length === 0 ? (
+              <div className="text-center py-8 px-4 text-slate-500 font-retro text-xs bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
+                {language === 'fr'
+                  ? 'Aucune inscription ne correspond à vos filtres.'
+                  : 'No attendee registrations match your search filters.'}
+              </div>
+            ) : (
+              filteredRegistrations.map(reg => {
+                const event = events.find(e => e.id === reg.eventId);
+                const isCheckedIn = Boolean(reg.checkedIn);
+
+                return (
+                  <div
+                    key={reg.id}
+                    className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="p-1 bg-slate-900 border border-slate-800 rounded shrink-0">
+                          <PixelAvatar avatar={reg.avatar} size="xs" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-pixel text-xs text-slate-100 truncate">{reg.attendeeName}</div>
+                          <div className="text-[11px] font-retro text-slate-400 truncate">
+                            {reg.attendeeEmail} · {reg.pronouns}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="font-pixel text-xs text-emerald-400 font-bold shrink-0 tabular-nums">
+                        ${reg.totalAmount}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-retro border-t border-slate-900 pt-2">
+                      <span className="font-pixel text-[10px] text-yellow-400 bg-yellow-950/40 border border-yellow-500/40 px-2 py-0.5 rounded">
+                        {reg.ticketCode}
+                      </span>
+                      <span className="text-slate-400 truncate">
+                        {event?.title || (language === 'fr' ? 'Événement inconnu' : 'Unknown Event')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          audio.playSelect();
+                          onToggleCheckIn(reg.id);
+                        }}
+                        className={`flex-1 min-h-[44px] px-3 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                          isCheckedIn
+                            ? 'bg-emerald-950 border-emerald-500 text-emerald-300 font-bold'
+                            : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500'
+                        }`}
+                      >
+                        {isCheckedIn ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-400" />
+                            <span>{language === 'fr' ? 'Enregistré ✓' : 'Checked In ✓'}</span>
+                          </>
+                        ) : (
+                          <span>{language === 'fr' ? 'Valider l’entrée' : 'Mark Check-In'}</span>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          audio.playPass();
+                          setRegToDelete(reg);
+                        }}
+                        className="min-h-[44px] min-w-[44px] p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 flex items-center justify-center transition-colors active:scale-95"
+                        aria-label={language === 'fr' ? 'Supprimer cette inscription' : 'Delete registration'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Attendee Records Table (>= md) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs font-retro">
               <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 text-[10px] uppercase font-pixel">
                 <tr>
-                  <th className="py-3 px-4">Attendee / Sprite</th>
-                  <th className="py-3 px-4">Ticket Code</th>
-                  <th className="py-3 px-4">Event</th>
-                  <th className="py-3 px-4">Paid & Donated</th>
-                  <th className="py-3 px-4">Status & Check-In</th>
+                  <th className="py-3 px-4">{language === 'fr' ? 'Participant / Sprite' : 'Attendee / Sprite'}</th>
+                  <th className="py-3 px-4">{language === 'fr' ? 'Code Billet' : 'Ticket Code'}</th>
+                  <th className="py-3 px-4">{language === 'fr' ? 'Événement' : 'Event'}</th>
+                  <th className="py-3 px-4">{language === 'fr' ? 'Payé & Don' : 'Paid & Donated'}</th>
+                  <th className="py-3 px-4">{language === 'fr' ? 'Statut Accueil' : 'Status & Check-In'}</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -484,7 +578,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {filteredRegistrations.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center py-8 text-slate-500 font-retro">
-                      No attendee registrations match your search filters.
+                      {language === 'fr'
+                        ? 'Aucune inscription ne correspond à vos filtres.'
+                        : 'No attendee registrations match your search filters.'}
                     </td>
                   </tr>
                 ) : (
@@ -519,10 +615,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </td>
 
                         <td className="py-3 px-4">
-                          <span className="font-pixel text-emerald-400 text-xs font-bold">
+                          <span className="font-pixel text-emerald-400 text-xs font-bold tabular-nums">
                             ${reg.totalAmount}
                           </span>
-                          <span className="text-slate-500 text-[10px] block">
+                          <span className="text-slate-500 text-[10px] block tabular-nums">
                             (${reg.ticketPrice} + ${reg.additionalDonation} don)
                           </span>
                         </td>
@@ -533,7 +629,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               audio.playSelect();
                               onToggleCheckIn(reg.id);
                             }}
-                            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg border text-xs font-retro flex items-center gap-1.5 transition-all active:scale-95 ${
+                            className={`min-h-[44px] px-3.5 py-1.5 rounded-lg border text-xs font-retro flex items-center gap-1.5 transition-all active:scale-95 ${
                               isCheckedIn
                                 ? 'bg-emerald-950 border-emerald-500 text-emerald-300 font-bold'
                                 : 'bg-slate-950 border-slate-700 text-slate-400 hover:border-slate-500'
@@ -542,10 +638,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             {isCheckedIn ? (
                               <>
                                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                <span>Checked In ✓</span>
+                                <span>{language === 'fr' ? 'Enregistré ✓' : 'Checked In ✓'}</span>
                               </>
                             ) : (
-                              <span>Mark Check-In</span>
+                              <span>{language === 'fr' ? 'Valider l’entrée' : 'Mark Check-In'}</span>
                             )}
                           </button>
                         </td>
@@ -556,7 +652,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               audio.playPass();
                               setRegToDelete(reg);
                             }}
-                            className="min-h-[40px] min-w-[40px] p-2 rounded-lg transition-colors text-slate-500 hover:text-rose-400 hover:bg-slate-800 flex items-center justify-center ml-auto"
+                            className="min-h-[44px] min-w-[44px] p-2 rounded-lg transition-colors text-slate-500 hover:text-rose-400 hover:bg-slate-800 flex items-center justify-center ml-auto"
                             title={language === 'fr' ? 'Annuler / Supprimer cette inscription' : 'Cancel / Delete Registration'}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -734,7 +830,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 required
                 value={editingEvent.title}
                 onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
               />
             </div>
 
@@ -748,7 +844,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   required
                   value={editingEvent.beneficiaryName}
                   onChange={e => setEditingEvent({ ...editingEvent, beneficiaryName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
                 />
               </div>
               <div>
@@ -761,7 +857,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   min="50"
                   value={editingEvent.fundraisingGoal}
                   onChange={e => setEditingEvent({ ...editingEvent, fundraisingGoal: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-pixel text-emerald-400 focus:outline-none focus:border-emerald-400"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-pixel text-emerald-400 focus:outline-none focus:border-emerald-400"
                 />
               </div>
             </div>
@@ -774,7 +870,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <select
                   value={editingEvent.status || 'open'}
                   onChange={e => setEditingEvent({ ...editingEvent, status: e.target.value as EventStatus })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
                 >
                   <option value="open">{language === 'fr' ? 'Inscriptions Ouvertes' : 'Registration Open'}</option>
                   <option value="active">{language === 'fr' ? 'Speed Dating en Direct' : 'Active Speed Dating Live'}</option>
@@ -791,7 +887,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   min="2"
                   value={editingEvent.maxCapacity}
                   onChange={e => setEditingEvent({ ...editingEvent, maxCapacity: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
                 />
               </div>
             </div>
@@ -804,7 +900,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 type="text"
                 value={editingEvent.venueName}
                 onChange={e => setEditingEvent({ ...editingEvent, venueName: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-cyan-400"
               />
             </div>
 

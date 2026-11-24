@@ -115,7 +115,10 @@ export default function App() {
   // Registrations state
   const [registrations, setRegistrations] = useState<EventRegistration[]>(getCleanInitialRegistrations);
 
-  // Modals state
+  // Admin authentication & Modals state
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('heartbyte_admin_auth') === 'true';
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isOrganizerAuthOpen, setIsOrganizerAuthOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -180,22 +183,22 @@ export default function App() {
     if (nextMuted) setBgmActive(false);
   };
 
-  // Handle Event Creation
+  // Handle Event Creation (Admin Only)
   const handleCreateEvent = (newEvent: CommunityEvent) => {
+    if (!isAdminAuthenticated || portal !== 'admin') return;
     setEvents(prev => [newEvent, ...prev]);
     setActiveEventId(newEvent.id);
-    if (portal === 'public') {
-      setScreen('EVENT_LOBBY');
-    }
   };
 
-  // Handle Event Updates (Admin)
+  // Handle Event Updates (Admin Only)
   const handleUpdateEvent = (updatedEvent: CommunityEvent) => {
+    if (!isAdminAuthenticated) return;
     setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
   };
 
-  // Handle Event Deletion (Admin)
+  // Handle Event Deletion (Admin Only)
   const handleDeleteEvent = (eventId: string) => {
+    if (!isAdminAuthenticated) return;
     setEvents(prev => prev.filter(e => e.id !== eventId));
     if (activeEventId === eventId && events.length > 1) {
       const remaining = events.filter(e => e.id !== eventId);
@@ -203,8 +206,9 @@ export default function App() {
     }
   };
 
-  // Handle Offline Donation / Sponsor Match (Admin)
+  // Handle Offline Donation / Sponsor Match (Admin Only)
   const handleAddOfflineDonation = (eventId: string, amount: number, donorName: string) => {
+    if (!isAdminAuthenticated) return;
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
         return {
@@ -247,8 +251,9 @@ export default function App() {
     setRegistrations(prev => [sponsorReg, ...prev]);
   };
 
-  // Handle Attendee Check-In Toggle (Admin)
+  // Handle Attendee Check-In Toggle (Admin Only)
   const handleToggleCheckIn = (registrationId: string) => {
+    if (!isAdminAuthenticated) return;
     setRegistrations(prev => prev.map(reg => {
       if (reg.id === registrationId) {
         const nextState = !reg.checkedIn;
@@ -267,8 +272,9 @@ export default function App() {
     }));
   };
 
-  // Handle Registration Deletion / Refund (Admin)
+  // Handle Registration Deletion / Refund (Admin Only)
   const handleDeleteRegistration = (registrationId: string) => {
+    if (!isAdminAuthenticated) return;
     const reg = registrations.find(r => r.id === registrationId);
     if (!reg) return;
 
@@ -321,7 +327,7 @@ export default function App() {
       if (activeEvent) {
         openRegisterModalFor(activeEvent);
       } else {
-        setIsCreateModalOpen(true);
+        setScreen('EVENTS_DIRECTORY');
       }
       return;
     }
@@ -441,6 +447,12 @@ export default function App() {
           registrations={registrations}
           suitors={allSuitors}
           dateResults={results}
+          isAuthenticated={isAdminAuthenticated}
+          onAuthenticated={() => setIsAdminAuthenticated(true)}
+          onLogout={() => {
+            setIsAdminAuthenticated(false);
+            setIsCreateModalOpen(false);
+          }}
           crtEnabled={crtEnabled}
           onToggleCrt={handleToggleCrt}
           bgmActive={bgmActive}
@@ -451,20 +463,24 @@ export default function App() {
           onToggleLanguage={handleToggleLanguage}
           onUpdateEvent={handleUpdateEvent}
           onDeleteEvent={handleDeleteEvent}
-          onOpenCreateEvent={() => setIsCreateModalOpen(true)}
+          onOpenCreateEvent={() => {
+            if (isAdminAuthenticated) setIsCreateModalOpen(true);
+          }}
           onToggleCheckIn={handleToggleCheckIn}
           onDeleteRegistration={handleDeleteRegistration}
           onAddOfflineDonation={handleAddOfflineDonation}
           onExitToPublic={() => setPortal('public')}
         />
 
-        {/* Event Creator Modal: Exclusive to Authenticated Organizers */}
-        <EventCreatorModal
-          isOpen={isCreateModalOpen}
-          language={language}
-          onClose={() => setIsCreateModalOpen(false)}
-          onCreateEvent={handleCreateEvent}
-        />
+        {/* Event Creator Modal: Exclusive to Authenticated Admins */}
+        {isAdminAuthenticated && (
+          <EventCreatorModal
+            isOpen={isCreateModalOpen}
+            language={language}
+            onClose={() => setIsCreateModalOpen(false)}
+            onCreateEvent={handleCreateEvent}
+          />
+        )}
       </>
     );
   }
@@ -503,8 +519,8 @@ export default function App() {
         hasRegistered={registrations.length > 0}
       />
 
-      {/* Screen Views with bottom padding for mobile dock */}
-      <main className="flex-1 pb-20 md:pb-6">
+      {/* Screen Views */}
+      <main className="flex-1 pb-6">
         {screen === 'TITLE' && (
           <TitleScreen
             playerProfile={playerProfile}
@@ -513,10 +529,6 @@ export default function App() {
             language={language}
             onStartGame={() => setScreen('EVENT_LOBBY')}
             onOpenEventsDirectory={() => setScreen('EVENTS_DIRECTORY')}
-            onOpenCreateEvent={() => {
-              audio.playSelect();
-              setIsOrganizerAuthOpen(true);
-            }}
             onOpenAvatarCreator={() => setScreen('AVATAR_CREATOR')}
           />
         )}
@@ -528,10 +540,6 @@ export default function App() {
             activeEventId={activeEventId}
             language={language}
             onSelectEvent={id => setActiveEventId(id)}
-            onOpenCreateEvent={() => {
-              audio.playSelect();
-              setIsOrganizerAuthOpen(true);
-            }}
             onOpenRegister={evt => openRegisterModalFor(evt)}
             onEnterDatingFloor={evt => {
               setActiveEventId(evt.id);
@@ -560,7 +568,7 @@ export default function App() {
               if (activeEvent) {
                 openRegisterModalFor(activeEvent);
               } else {
-                setIsOrganizerAuthOpen(true);
+                setScreen('EVENTS_DIRECTORY');
               }
             }}
             onBackToDirectory={() => setScreen('EVENTS_DIRECTORY')}
@@ -631,27 +639,22 @@ export default function App() {
         />
       )}
 
-      {/* Custom Organizer Authentication Modal Pop Up */}
+      {/* Custom Admin Authentication Modal Pop Up */}
       <OrganizerAuthModal
         isOpen={isOrganizerAuthOpen}
         language={language}
         onClose={() => setIsOrganizerAuthOpen(false)}
         onSuccessCreateEvent={() => {
+          setIsAdminAuthenticated(true);
           setIsOrganizerAuthOpen(false);
+          setPortal('admin');
           setIsCreateModalOpen(true);
         }}
         onSuccessOpenDashboard={() => {
+          setIsAdminAuthenticated(true);
           setIsOrganizerAuthOpen(false);
           setPortal('admin');
         }}
-      />
-
-      {/* Event Creator Modal Pop Up (Available to verified organizers) */}
-      <EventCreatorModal
-        isOpen={isCreateModalOpen}
-        language={language}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreateEvent={handleCreateEvent}
       />
 
       {/* Floating Retro Mobile Bottom Navigation Bar */}
@@ -662,23 +665,27 @@ export default function App() {
         language={language}
       />
 
-      {/* Public Retro Bottom Status Bar */}
-      <footer className="w-full border-t border-slate-900 bg-slate-950/90 py-3.5 px-4 text-center text-xs font-retro text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* Public Retro Bottom Status Bar (Clearance above mobile bottom nav) */}
+      <footer className="w-full border-t border-slate-900 bg-slate-950/90 pt-3.5 pb-24 md:pb-3.5 px-4 text-center text-xs font-retro text-slate-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
           <div>
             {t.footerCopyright}
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px]">
             <span>{t.footerProceeds}</span>
-            <span className="text-slate-700">·</span>
-            {/* Separate Organizer Entrance via Custom Modal */}
+            <span className="text-slate-700 hidden sm:inline">·</span>
+            {/* Separate Admin Entrance via Custom Modal */}
             <button
               onClick={() => {
                 audio.playSelect();
-                setIsOrganizerAuthOpen(true);
+                if (isAdminAuthenticated) {
+                  setPortal('admin');
+                } else {
+                  setIsOrganizerAuthOpen(true);
+                }
               }}
-              className="text-yellow-400 hover:text-yellow-300 hover:underline flex items-center gap-1 transition-colors"
+              className="min-h-[44px] sm:min-h-0 px-3 sm:px-0 text-yellow-400 hover:text-yellow-300 hover:underline flex items-center gap-1.5 transition-colors"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>{t.footerOrganizerLink}</span>

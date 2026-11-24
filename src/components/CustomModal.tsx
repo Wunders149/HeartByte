@@ -107,7 +107,7 @@ export const CustomModal: React.FC<CustomModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-sm overflow-y-auto animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-5 bg-slate-950/85 backdrop-blur-sm overflow-y-auto animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           audio.playSelect();
@@ -116,10 +116,13 @@ export const CustomModal: React.FC<CustomModalProps> = ({
       }}
     >
       <div
-        className={`relative w-full ${MAX_WIDTHS[maxWidth]} bg-slate-900 border-2 ${styles.border} ${styles.glow} rounded-2xl shadow-2xl p-5 sm:p-6 md:p-7 max-h-[92vh] flex flex-col my-auto transition-transform duration-200 animate-in zoom-in-95`}
+        className={`relative w-full ${MAX_WIDTHS[maxWidth]} bg-slate-900 border-t-2 border-x-2 sm:border-2 ${styles.border} ${styles.glow} rounded-t-3xl sm:rounded-2xl shadow-2xl px-4 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] sm:p-6 md:p-7 max-h-[90dvh] flex flex-col sm:my-auto transition-transform duration-200 animate-in zoom-in-95`}
       >
+        {/* Mobile Bottom-Sheet Drag Handle */}
+        <div className="w-10 h-1 bg-slate-700 rounded-full mx-auto mb-3 sm:hidden shrink-0" />
+
         {/* Retro scanline overlay within modal */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none rounded-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none rounded-t-3xl sm:rounded-2xl" />
 
         {/* Close Button */}
         {!hideCloseButton && (

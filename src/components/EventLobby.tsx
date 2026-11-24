@@ -54,8 +54,8 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
           </h2>
           <p className="font-retro text-sm text-slate-300 max-w-md mx-auto mb-6">
             {language === 'fr'
-              ? 'Sélectionnez ou créez une soirée caritative dans le répertoire pour accéder à la piste de speed dating !'
-              : 'Choose or create a community speed dating fundraiser in the directory to enter the floor!'}
+              ? 'Sélectionnez une soirée caritative publiée par l’administrateur dans le répertoire pour accéder à la piste de speed dating !'
+              : 'Choose a fundraiser posted by the admin in the directory to enter the speed dating floor!'}
           </p>
           <button
             onClick={() => {
@@ -111,17 +111,17 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
       />
 
       {/* Hero Welcome Banner */}
-      <div className="relative bg-gradient-to-r from-slate-900 via-pink-950/30 to-slate-900 border-2 border-pink-500/40 rounded-2xl p-6 md:p-8 mb-8 overflow-hidden shadow-2xl">
+      <div className="relative bg-gradient-to-r from-slate-900 via-pink-950/30 to-slate-900 border-2 border-pink-500/40 rounded-2xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6">
           <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 text-xs font-retro text-cyan-400 mb-2">
+            <div className="inline-flex flex-wrap items-center justify-center md:justify-start gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-retro text-cyan-400 mb-2">
               <span>{event.venueName.toUpperCase()}</span>
               <span aria-hidden="true">·</span>
               <span>{language === 'fr' ? 'PISTE DE SPEED DATING' : 'SPEED DATING FLOOR'}</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-pixel text-pink-400 tracking-tight text-wrap-balance">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-pixel text-pink-400 tracking-tight text-wrap-balance">
               {event.title}
             </h1>
             <p className="text-xs md:text-sm text-slate-300 font-retro mt-2 max-w-xl">
@@ -133,17 +133,17 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
             </p>
 
             {/* Quick Player Stats */}
-            <div className="flex flex-wrap items-center gap-3 mt-4 text-xs font-retro text-slate-400 justify-center md:justify-start">
-              <span>{language === 'fr' ? `Rencontres : ${results.length}/${suitors.length} faites` : `Dates: ${results.length}/${suitors.length} completed`}</span>
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mt-4 text-xs font-retro text-slate-400 justify-center md:justify-start">
+              <span className="tabular-nums">{language === 'fr' ? `Rencontres : ${results.length}/${suitors.length} faites` : `Dates: ${results.length}/${suitors.length} completed`}</span>
               <span aria-hidden="true">·</span>
-              <span className="text-pink-400 font-bold">{matchedSuitorIds.size} {t.mutualMatchesBadge}</span>
+              <span className="text-pink-400 font-bold tabular-nums">{matchedSuitorIds.size} {t.mutualMatchesBadge}</span>
               <span aria-hidden="true">·</span>
               <button
                 onClick={() => {
                   audio.playSelect();
                   setShowRules(!showRules);
                 }}
-                className="text-cyan-400 hover:underline flex items-center gap-1"
+                className="min-h-[36px] text-cyan-400 hover:underline flex items-center gap-1"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>{t.howToPlay}</span>
@@ -152,16 +152,16 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
           </div>
 
           {/* Quick CTA cluster */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto shrink-0">
             {allCompleted ? (
               <button
                 onClick={() => {
                   audio.playMatchFanfare();
                   onOpenReveal();
                 }}
-                className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:translate-y-0.5 flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-5 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                <Flame className="w-4 h-4 fill-slate-950" />
+                <Flame className="w-4 h-4 fill-slate-950 shrink-0" />
                 <span>{t.viewMatchReveal}</span>
               </button>
             ) : suitors.length > 0 ? (
@@ -170,9 +170,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   audio.playRoundBell();
                   onStartFullEvent();
                 }}
-                className="px-6 py-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:translate-y-0.5 flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-5 py-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                <Play className="w-4 h-4 fill-slate-950" />
+                <Play className="w-4 h-4 fill-slate-950 shrink-0" />
                 <span>{t.startSpeedDating} ({suitors.length - results.length} {language === 'fr' ? 'Restants' : 'Left'})</span>
               </button>
             ) : (
@@ -181,9 +181,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   audio.playSelect();
                   onOpenRegister();
                 }}
-                className="px-6 py-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:translate-y-0.5 flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-5 py-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                <Ticket className="w-4 h-4" />
+                <Ticket className="w-4 h-4 shrink-0" />
                 <span>{language === 'fr' ? "+ Prendre Place à une Table" : "+ Take a Seat at a Table"}</span>
               </button>
             )}
@@ -194,9 +194,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                   audio.playMatchFanfare();
                   onOpenReveal();
                 }}
-                className="px-4 py-3 bg-yellow-950/80 hover:bg-yellow-900/80 border border-yellow-500/50 text-yellow-300 font-retro text-xs rounded-xl transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-3 bg-yellow-950/80 hover:bg-yellow-900/80 border border-yellow-500/50 text-yellow-300 font-retro text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                <Flame className="w-4 h-4 text-yellow-400" />
+                <Flame className="w-4 h-4 text-yellow-400 shrink-0" />
                 <span>{t.viewMatchReveal} ({results.length})</span>
               </button>
             )}
@@ -206,9 +206,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 audio.playSelect();
                 onOpenRegister();
               }}
-              className="px-4 py-3 bg-emerald-950/80 hover:bg-emerald-900/80 border border-emerald-500/50 text-emerald-300 font-retro text-xs rounded-xl transition-colors flex items-center gap-2"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-3 bg-emerald-950/80 hover:bg-emerald-900/80 border border-emerald-500/50 text-emerald-300 font-retro text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
             >
-              <Ticket className="w-4 h-4 text-emerald-400" />
+              <Ticket className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{t.registerDonateBtn}</span>
             </button>
           </div>
@@ -487,11 +487,11 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
         </>
       ) : (
         /* Registered Community Daters Roster View */
-        <div className="bg-slate-900 border-2 border-slate-800 rounded-2xl p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
+        <div className="bg-slate-900 border-2 border-slate-800 rounded-2xl p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-5 sm:mb-6">
             <div>
-              <h3 className="font-pixel text-lg text-slate-100 flex items-center gap-2">
-                <Users className="w-5 h-5 text-cyan-400" />
+              <h3 className="font-pixel text-base sm:text-lg text-slate-100 flex items-center gap-2">
+                <Users className="w-5 h-5 text-cyan-400 shrink-0" />
                 <span>{language === 'fr' ? `Donateurs & Inscrits (${eventRegistrations.length})` : `Registered Community Donors (${eventRegistrations.length})`}</span>
               </h3>
               <p className="text-xs font-retro text-slate-400 mt-1">
@@ -504,16 +504,16 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                 audio.playSelect();
                 onOpenRegister();
               }}
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:translate-y-0.5 flex items-center gap-1.5 shrink-0"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
             >
-              <Ticket className="w-3.5 h-3.5" />
+              <Ticket className="w-4 h-4" />
               <span>{language === 'fr' ? "S'inscrire soi-même →" : 'Register Yourself →'}</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {eventRegistrations.length === 0 ? (
-              <div className="col-span-full py-10 text-center bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
+              <div className="col-span-full py-10 px-4 text-center bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
                 <p className="text-xs font-retro text-slate-400 mb-3">
                   {language === 'fr'
                     ? 'Aucun participant inscrit pour l’instant. Soyez le premier donateur !'
@@ -524,9 +524,9 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
                     audio.playSelect();
                     onOpenRegister();
                   }}
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:translate-y-0.5 inline-flex items-center gap-1.5"
+                  className="min-h-[44px] px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs rounded-lg shadow transition-all active:scale-95 inline-flex items-center gap-1.5"
                 >
-                  <Ticket className="w-3.5 h-3.5" />
+                  <Ticket className="w-4 h-4" />
                   <span>{language === 'fr' ? "Prendre un Pass Donateur" : 'Get Donor Pass'}</span>
                 </button>
               </div>
@@ -534,30 +534,30 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
               eventRegistrations.map(reg => (
               <div
                 key={reg.id}
-                className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4 transition-all hover:border-pink-500/50"
+                className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 transition-all hover:border-pink-500/50"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="p-1 bg-slate-900 border border-slate-800 rounded-lg shrink-0">
                     <PixelAvatar avatar={reg.avatar} size="sm" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-pixel text-xs text-slate-100">{reg.attendeeName}</span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-pixel text-xs text-slate-100 truncate">{reg.attendeeName}</span>
                       <span className="text-[10px] font-retro text-cyan-400">{reg.pronouns}</span>
                     </div>
                     <div className="text-[11px] font-retro text-slate-400 line-clamp-1 mt-0.5">
                       {reg.bio}
                     </div>
                     <div className="text-[10px] font-pixel text-yellow-400 mt-1 flex items-center gap-1">
-                      <Award className="w-3 h-3" />
-                      <span>{reg.ticketCode}</span>
+                      <Award className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{reg.ticketCode}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <span className="text-[10px] font-retro text-slate-400 block">DONATED</span>
-                  <span className="font-pixel text-sm text-emerald-400 font-bold">
+                  <span className="text-[10px] font-retro text-slate-400 block">{language === 'fr' ? 'DON' : 'DONATED'}</span>
+                  <span className="font-pixel text-sm text-emerald-400 font-bold tabular-nums">
                     ${reg.totalAmount}
                   </span>
                 </div>

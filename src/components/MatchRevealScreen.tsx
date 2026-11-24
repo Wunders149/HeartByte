@@ -61,14 +61,14 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4">
+    <div className="max-w-5xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
       {/* Header Banner */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 sm:mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-pink-950/60 border border-pink-500/50 rounded-full font-retro text-xs text-pink-300 mb-3">
           <Trophy className="w-3.5 h-3.5 text-yellow-400" />
           <span>{t.ceremonyBadge}</span>
         </div>
-        <h1 className="text-3xl md:text-4xl font-pixel text-pink-400 mb-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-pixel text-pink-400 mb-2">
           {t.matchmakingResultsTitle}
         </h1>
         <p className="text-xs md:text-sm text-slate-300 font-retro max-w-lg mx-auto">
@@ -76,15 +76,15 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
         </p>
 
         {/* Mutual Match Count Ticker */}
-        <div className="mt-4 inline-block bg-slate-900 border-2 border-yellow-400/80 rounded-xl px-6 py-2.5 shadow-lg">
-          <span className="font-pixel text-sm text-yellow-400">
+        <div className="mt-4 inline-block bg-slate-900 border-2 border-yellow-400/80 rounded-xl px-5 sm:px-6 py-2.5 shadow-lg">
+          <span className="font-pixel text-xs sm:text-sm text-yellow-400 tabular-nums">
             {mutualMatches.length} {t.mutualMatchesFound}
           </span>
         </div>
       </div>
 
       {/* Grid of Suitors Results */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
         {results.map(result => {
           const suitor = suitors.find(s => s.id === result.suitorId);
           if (!suitor) return null;
@@ -97,22 +97,22 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
           return (
             <div
               key={suitor.id}
-              className={`relative bg-slate-900 rounded-xl border-2 p-5 transition-all duration-500 flex flex-col justify-between ${
+              className={`relative bg-slate-900 rounded-xl border-2 p-4 sm:p-5 transition-all duration-500 flex flex-col justify-between ${
                 isMutual
-                  ? 'border-pink-500 shadow-xl shadow-pink-500/10 scale-[1.02]'
+                  ? 'border-pink-500 shadow-xl shadow-pink-500/10 sm:scale-[1.02]'
                   : 'border-slate-800'
               }`}
             >
               {/* Mutual Match Ribbon */}
               {isMutual && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-400 text-slate-950 font-pixel text-[10px] px-3 py-0.5 rounded-full shadow-md">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-400 text-slate-950 font-pixel text-[10px] px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
                   ★ {language === 'fr' ? 'C’EST UN MATCH !' : 'IT’S A MATCH!'} ★
                 </div>
               )}
 
               <div>
                 {/* Avatar and Basic Info */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-3.5 sm:gap-4 mb-4">
                   <div className="p-2 bg-slate-950 border border-slate-800 rounded-lg shrink-0">
                     <PixelAvatar
                       avatar={suitor.avatar}
@@ -120,14 +120,14 @@ export const MatchRevealScreen: React.FC<MatchRevealScreenProps> = ({
                       size="md"
                     />
                   </div>
-                  <div>
-                    <h3 className="font-pixel text-sm text-slate-100">
+                  <div className="min-w-0">
+                    <h3 className="font-pixel text-sm text-slate-100 truncate">
                       {suitor.name}
                     </h3>
-                    <div className="text-xs font-retro text-cyan-400">
+                    <div className="text-xs font-retro text-cyan-400 truncate">
                       {suitor.title}
                     </div>
-                    <div className="text-[11px] font-retro text-slate-400 mt-1">
+                    <div className="text-[11px] font-retro text-slate-400 mt-1 tabular-nums">
                       {t.chemistryLabel} : <span className="text-pink-400 font-bold">{result.finalChemistry}%</span>
                     </div>
                   </div>

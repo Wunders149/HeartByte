@@ -139,8 +139,8 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-start">
-        {/* Left Column: Live Pixel Avatar Preview & ID Card (Sticky on mobile for instant visual feedback) */}
-        <div className="lg:col-span-5 bg-slate-900 border-2 border-pink-500/50 rounded-xl p-3 sm:p-6 shadow-xl relative overflow-hidden sticky top-14 sm:static z-20 backdrop-blur-md">
+        {/* Left Column: Live Pixel Avatar Preview & ID Card (Sticky on lg+ desktop, clean top flow on mobile) */}
+        <div className="lg:col-span-5 bg-slate-900 border-2 border-pink-500/50 rounded-xl p-3.5 sm:p-6 shadow-xl relative overflow-hidden lg:sticky lg:top-20 z-10">
           <div className="absolute top-2 right-3 text-[10px] font-pixel text-pink-500/60 hidden sm:block">
             ID: P1-LOVER
           </div>
@@ -408,7 +408,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
                   value={currentProfile.name}
                   onChange={e => setCurrentProfile({ ...currentProfile, name: e.target.value })}
                   placeholder={isFr ? 'ex. Alex Heart' : 'e.g. Alex Heart'}
-                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base sm:text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
                   maxLength={20}
                 />
               </div>
@@ -423,7 +423,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
                     value={currentProfile.pronouns}
                     onChange={e => setCurrentProfile({ ...currentProfile, pronouns: e.target.value })}
                     placeholder={isFr ? 'iel, elle, il, autre' : 'they/them, she/her, he/him'}
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base sm:text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
                     maxLength={15}
                   />
                 </div>
@@ -435,7 +435,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
                   <select
                     value={currentProfile.interestedIn}
                     onChange={e => setCurrentProfile({ ...currentProfile, interestedIn: e.target.value as PlayerProfile['interestedIn'] })}
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base sm:text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
                   >
                     <option value="all">{isFr ? 'Tout le monde (Tous prétendants)' : 'Everyone (All Suitors)'}</option>
                     <option value="women">{isFr ? 'Femmes' : 'Women Suitors'}</option>
@@ -454,7 +454,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
                   value={currentProfile.vibeTag}
                   onChange={e => setCurrentProfile({ ...currentProfile, vibeTag: e.target.value })}
                   placeholder={isFr ? 'ex. Passionné(e) de Synthwave, Gamer Cozy, Recordman Arcade' : 'e.g. Synthwave Enthusiast, Cozy Gamer, High Score Chaser'}
-                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base sm:text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
                   maxLength={35}
                 />
               </div>
@@ -467,7 +467,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
                   value={currentProfile.bio}
                   onChange={e => setCurrentProfile({ ...currentProfile, bio: e.target.value })}
                   placeholder={isFr ? 'Rédigez une courte présentation rétro sur ce qui fait de vous le Joueur 2 idéal...' : 'Write a brief retro pitch about what makes you a 10/10 player two...'}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none h-20 resize-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base sm:text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none h-24 resize-none"
                   maxLength={140}
                 />
               </div>
@@ -481,7 +481,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({
                   value={currentProfile.favorite8BitGame}
                   onChange={e => setCurrentProfile({ ...currentProfile, favorite8BitGame: e.target.value })}
                   placeholder={isFr ? 'ex. Chrono Trigger, Pac-Man, EarthBound, Zelda' : 'e.g. Chrono Trigger, Pac-Man, EarthBound, Mega Man'}
-                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base sm:text-sm text-slate-100 font-retro focus:border-pink-500 focus:outline-none"
                   maxLength={30}
                 />
               </div>

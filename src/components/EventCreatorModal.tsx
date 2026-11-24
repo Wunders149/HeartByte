@@ -130,9 +130,10 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
           onClose();
         }
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="relative w-full max-w-3xl bg-slate-900 border-2 border-pink-500 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-3xl bg-slate-900 border-t-2 border-x-2 sm:border-2 border-pink-500 rounded-t-3xl sm:rounded-2xl shadow-2xl px-4 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] sm:p-6 md:p-8 max-h-[90dvh] overflow-y-auto">
+        <div className="w-10 h-1 bg-slate-700 rounded-full mx-auto mb-3 sm:hidden" />
         <button
           onClick={() => {
             audio.playSelect();
@@ -171,7 +172,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. Save the Local Community Garden & Cat Sanctuary"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -185,7 +186,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={beneficiaryName}
                 onChange={e => setBeneficiaryName(e.target.value)}
                 placeholder="e.g. Hope Animal Rescue & Sanctuary"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -196,7 +197,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
               <select
                 value={causeCategory}
                 onChange={e => setCauseCategory(e.target.value as CauseCategory)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               >
                 <option value="community">Community & Neighborhood</option>
                 <option value="arts">Arts, Music & Culture</option>
@@ -220,7 +221,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 required
                 value={fundraisingGoal}
                 onChange={e => setFundraisingGoal(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-emerald-400 font-pixel focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-emerald-400 font-pixel focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -234,7 +235,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 max="100"
                 value={maxCapacity}
                 onChange={e => setMaxCapacity(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -247,7 +248,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={creatorName}
                 onChange={e => setCreatorName(e.target.value)}
                 placeholder="e.g. Jordan River (Lead)"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
           </div>
@@ -260,7 +261,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="Explain why this community fundraiser is happening and what the speed dating donations will help purchase or build..."
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 h-20 resize-none"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 h-20 resize-none"
             />
           </div>
 
@@ -275,7 +276,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={date}
                 onChange={e => setDate(e.target.value)}
                 placeholder="e.g. Friday, December 18, 2026"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -288,7 +289,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={time}
                 onChange={e => setTime(e.target.value)}
                 placeholder="e.g. 7:30 PM - 10:30 PM"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -301,7 +302,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={venueName}
                 onChange={e => setVenueName(e.target.value)}
                 placeholder="e.g. The Retro Lounge & Cafe"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
 
@@ -314,7 +315,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                 value={venueAddress}
                 onChange={e => setVenueAddress(e.target.value)}
                 placeholder="e.g. 123 Main Street"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
               />
             </div>
           </div>
@@ -339,7 +340,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     value={tier1Name}
                     onChange={e => setTier1Name(e.target.value)}
                     placeholder="Tier 1 Name"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-retro text-slate-100"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-retro text-slate-100"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -347,7 +348,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     type="number"
                     value={tier1Price}
                     onChange={e => setTier1Price(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-pixel text-emerald-400"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-pixel text-emerald-400"
                   />
                 </div>
                 <div className="sm:col-span-6">
@@ -356,7 +357,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     value={tier1Perks}
                     onChange={e => setTier1Perks(e.target.value)}
                     placeholder="Perks description"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-retro text-slate-300"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-retro text-slate-300"
                   />
                 </div>
               </div>
@@ -369,7 +370,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     value={tier2Name}
                     onChange={e => setTier2Name(e.target.value)}
                     placeholder="Tier 2 Name"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-retro text-slate-100"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-retro text-slate-100"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -377,7 +378,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     type="number"
                     value={tier2Price}
                     onChange={e => setTier2Price(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-pixel text-emerald-400"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-pixel text-emerald-400"
                   />
                 </div>
                 <div className="sm:col-span-6">
@@ -386,7 +387,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     value={tier2Perks}
                     onChange={e => setTier2Perks(e.target.value)}
                     placeholder="Perks description"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-retro text-slate-300"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-retro text-slate-300"
                   />
                 </div>
               </div>
@@ -399,7 +400,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     value={tier3Name}
                     onChange={e => setTier3Name(e.target.value)}
                     placeholder="Tier 3 Name"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-retro text-slate-100"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-retro text-slate-100"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -407,7 +408,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     type="number"
                     value={tier3Price}
                     onChange={e => setTier3Price(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-pixel text-emerald-400"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-pixel text-emerald-400"
                   />
                 </div>
                 <div className="sm:col-span-6">
@@ -416,7 +417,7 @@ export const EventCreatorModal: React.FC<EventCreatorModalProps> = ({
                     value={tier3Perks}
                     onChange={e => setTier3Perks(e.target.value)}
                     placeholder="Perks description"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs font-retro text-slate-300"
+                    className="w-full min-h-[44px] bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-base sm:text-xs font-retro text-slate-300"
                   />
                 </div>
               </div>

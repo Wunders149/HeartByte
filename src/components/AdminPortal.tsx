@@ -11,6 +11,9 @@ interface AdminPortalProps {
   registrations: EventRegistration[];
   suitors: Suitor[];
   dateResults: DateResult[];
+  isAuthenticated: boolean;
+  onAuthenticated: () => void;
+  onLogout: () => void;
   crtEnabled: boolean;
   onToggleCrt: () => void;
   bgmActive: boolean;
@@ -36,6 +39,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   registrations,
   suitors,
   dateResults,
+  isAuthenticated,
+  onAuthenticated,
+  onLogout,
   crtEnabled,
   onToggleCrt,
   bgmActive,
@@ -52,9 +58,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onAddOfflineDonation,
   onExitToPublic,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('heartbyte_admin_auth') === 'true';
-  });
   const [passcode, setPasscode] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'events' | 'attendees' | 'speeddating' | 'analytics'>('events');
@@ -65,28 +68,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     e.preventDefault();
     if (passcode.trim().toUpperCase() === DEFAULT_ORGANIZER_PIN || passcode.trim() === '8888') {
       audio.playMatchFanfare();
-      setIsAuthenticated(true);
       sessionStorage.setItem('heartbyte_admin_auth', 'true');
+      onAuthenticated();
+      setPasscode('');
       setErrorMsg(null);
     } else {
       audio.playPass();
-      setErrorMsg(language === 'fr' 
-        ? 'Code secret invalide. Indice : Utilisez HEARTBYTE89 ou cliquez sur Accès 1-Clic.' 
-        : 'Invalid Organizer Keycode. Hint: Use HEARTBYTE89 or click 1-Click Access below.');
+      setErrorMsg(language === 'fr'
+        ? 'Code secret administrateur invalide. Seul l’administrateur peut accéder.'
+        : 'Invalid admin keycode. Only the admin is authorized.');
     }
-  };
-
-  const handleQuickDemoLogin = () => {
-    audio.playMatchFanfare();
-    setIsAuthenticated(true);
-    sessionStorage.setItem('heartbyte_admin_auth', 'true');
-    setErrorMsg(null);
   };
 
   const handleLogout = () => {
     audio.playSelect();
-    setIsAuthenticated(false);
     sessionStorage.removeItem('heartbyte_admin_auth');
+    onLogout();
     onExitToPublic();
   };
 
@@ -101,9 +98,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               audio.playSelect();
               onToggleLanguage();
             }}
-            className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-retro text-yellow-300 flex items-center gap-1.5"
+            className="min-h-[44px] min-w-[44px] px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-retro text-yellow-300 flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <Globe className="w-3.5 h-3.5" />
+            <Globe className="w-4 h-4" />
             <span className="font-pixel text-[10px]">{language.toUpperCase()}</span>
           </button>
         </div>
@@ -112,7 +109,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         <div className="absolute inset-0 bg-retro-grid opacity-20 pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-yellow-500/10 rounded-full blur-[90px] pointer-events-none" />
 
-        <div className="relative z-10 w-full max-w-md bg-slate-900 border-2 border-yellow-500/60 rounded-2xl p-6 sm:p-8 shadow-2xl">
+        <div className="relative z-10 w-full max-w-md bg-slate-900 border-2 border-yellow-500/60 rounded-2xl p-5 sm:p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-6">
             <div className="inline-flex p-3 bg-yellow-400/15 border border-yellow-400/40 rounded-xl text-yellow-400 mb-3">
@@ -139,13 +136,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
+                  required
                   value={passcode}
                   onChange={e => {
                     setPasscode(e.target.value);
                     if (errorMsg) setErrorMsg(null);
                   }}
-                  placeholder="HEARTBYTE89 / 8888"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2.5 text-xs font-pixel text-yellow-300 focus:outline-none focus:border-yellow-400 placeholder:text-slate-600"
+                  placeholder="••••••••••"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2.5 text-base sm:text-xs font-pixel text-yellow-300 focus:outline-none focus:border-yellow-400 placeholder:text-slate-600"
                 />
               </div>
             </div>
@@ -159,27 +157,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md transition-all active:translate-y-0.5"
+              className="w-full min-h-[48px] py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md transition-all active:scale-95"
             >
               {t.verifyUnlockBtn}
             </button>
           </form>
 
-          {/* 1-Click Organizer Quick Demo Access */}
-          <div className="mt-5 pt-5 border-t border-slate-800 text-center space-y-3">
-            <button
-              type="button"
-              onClick={handleQuickDemoLogin}
-              className="w-full py-2 bg-slate-950 hover:bg-slate-800 border border-yellow-500/40 text-yellow-300 font-retro text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-yellow-400" />
-              <span>{t.quickAccessBtn} ({ORGANIZER_EMAIL})</span>
-            </button>
-
+          <div className="mt-5 pt-5 border-t border-slate-800 text-center">
             <button
               type="button"
               onClick={onExitToPublic}
-              className="text-xs font-retro text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1 mx-auto"
+              className="min-h-[44px] px-4 text-xs font-retro text-slate-400 hover:text-slate-200 inline-flex items-center justify-center gap-1.5 mx-auto"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>{language === 'fr' ? 'Retourner à l’Application Publique' : 'Return to Public Dater App'}</span>
@@ -215,6 +203,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           suitors={suitors}
           dateResults={dateResults}
           language={language}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           onUpdateEvent={onUpdateEvent}
           onDeleteEvent={onDeleteEvent}
           onOpenCreateEvent={onOpenCreateEvent}

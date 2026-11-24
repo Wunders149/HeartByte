@@ -101,9 +101,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           onClose();
         }
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="relative w-full max-w-2xl bg-slate-900 border-2 border-pink-500 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-slate-900 border-t-2 border-x-2 sm:border-2 border-pink-500 rounded-t-3xl sm:rounded-2xl shadow-2xl px-4 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] sm:p-6 md:p-8 max-h-[90dvh] overflow-y-auto">
+        <div className="w-10 h-1 bg-slate-700 rounded-full mx-auto mb-3 sm:hidden" />
         {/* Close Button with 44px touch target */}
         <button
           onClick={() => {
@@ -282,7 +283,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     value={attendeeName}
                     onChange={e => setAttendeeName(e.target.value)}
                     placeholder="e.g. Alex Heart"
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -294,7 +295,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     value={attendeeEmail}
                     onChange={e => setAttendeeEmail(e.target.value)}
                     placeholder="alex@example.com"
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -305,7 +306,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     value={pronouns}
                     onChange={e => setPronouns(e.target.value)}
                     placeholder="they/them, iel, elle, il"
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -314,7 +315,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   <select
                     value={interestedIn}
                     onChange={e => setInterestedIn(e.target.value as PlayerProfile['interestedIn'])}
-                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
+                    className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500"
                   >
                     <option value="all">{language === 'fr' ? 'Tout le monde' : 'Everyone'}</option>
                     <option value="women">{t.women}</option>
@@ -332,7 +333,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   value={datingBio}
                   onChange={e => setDatingBio(e.target.value)}
                   placeholder={language === 'fr' ? 'Partagez une phrase d’accroche et ce qui fait de vous une personne formidable à rencontrer...' : 'Share a quick line about why you are here and what makes you a great conversation partner...'}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 min-h-[64px] resize-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 min-h-[72px] resize-none"
                   maxLength={120}
                 />
               </div>

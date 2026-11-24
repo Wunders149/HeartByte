@@ -163,28 +163,28 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
           <div className="text-xs font-retro text-cyan-400">{t.pdaMessengerTitle}</div>
           <h1 className="text-xl sm:text-2xl font-pixel text-pink-400">{t.matchChatHubTitle}</h1>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
           {onOpenReveal && (
             <button
               onClick={() => {
                 audio.playSelect();
                 onOpenReveal();
               }}
-              className="min-h-[40px] px-3.5 py-1.5 border border-pink-500/40 bg-pink-950/40 hover:bg-pink-900/50 text-xs font-retro text-pink-300 rounded-lg transition-colors"
+              className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2 border border-pink-500/40 bg-pink-950/40 hover:bg-pink-900/50 text-xs font-retro text-pink-300 rounded-lg transition-colors flex items-center justify-center"
             >
               ★ {t.backToResults}
             </button>
           )}
           <button
             onClick={onBackToLobby}
-            className="min-h-[40px] px-3.5 py-1.5 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg transition-colors"
+            className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-retro text-slate-300 rounded-lg transition-colors flex items-center justify-center"
           >
             {language === 'fr' ? '← Retour au Salon' : '← Back to Lobby'}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-0 md:gap-6 bg-slate-950 border-2 border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[540px]">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-0 md:gap-6 bg-slate-950 border-2 border-slate-800 rounded-2xl overflow-hidden shadow-2xl h-[calc(100dvh-260px)] min-h-[430px] md:h-[580px]">
         {/* Left Column: Matches Contact List (Mobile collapsible) */}
         <div className={`md:col-span-4 border-r border-slate-800 bg-slate-900/60 p-3 sm:p-4 ${
           mobilePane === 'chat' ? 'hidden md:block' : 'block'
@@ -233,36 +233,38 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
         </div>
 
         {/* Right Column: Chat Window & 2nd Date Invitation */}
-        <div className={`md:col-span-8 flex flex-col justify-between p-3.5 sm:p-4 md:p-6 bg-slate-950 ${
+        <div className={`md:col-span-8 flex flex-col justify-between p-3 sm:p-4 md:p-6 bg-slate-950 h-full overflow-hidden ${
           mobilePane === 'list' ? 'hidden md:flex' : 'flex'
         }`}>
           {activeSuitor ? (
             <>
               {/* Active Suitor Chat Header */}
-              <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-800 mb-3 sm:mb-4">
-                <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-3 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   {/* Mobile Back-to-Contacts Button */}
                   <button
                     onClick={() => setMobilePane('list')}
-                    className="md:hidden min-h-[44px] px-3 py-1.5 text-xs font-retro text-cyan-400 hover:text-cyan-300 rounded-lg border border-slate-700 bg-slate-900 flex items-center gap-1 active:scale-95"
+                    className="md:hidden min-h-[44px] px-2.5 py-1.5 text-xs font-retro text-cyan-400 hover:text-cyan-300 rounded-lg border border-slate-700 bg-slate-900 flex items-center gap-1 shrink-0 active:scale-95"
                   >
                     ← {t.navMatches}
                   </button>
-                  <PixelAvatar avatar={activeSuitor.avatar} size="xs" />
-                  <div>
-                    <h2 className="font-pixel text-xs sm:text-sm text-slate-100">{activeSuitor.name}</h2>
-                    <div className="text-[11px] sm:text-xs font-retro text-cyan-400">{activeSuitor.title}</div>
+                  <div className="shrink-0">
+                    <PixelAvatar avatar={activeSuitor.avatar} size="xs" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-pixel text-xs sm:text-sm text-slate-100 truncate">{activeSuitor.name}</h2>
+                    <div className="text-[11px] sm:text-xs font-retro text-cyan-400 truncate">{activeSuitor.title}</div>
                   </div>
                 </div>
 
-                <div className="text-[11px] sm:text-xs font-retro text-slate-400 flex items-center gap-1.5">
+                <div className="hidden xs:flex text-[11px] sm:text-xs font-retro text-slate-400 items-center gap-1 shrink-0">
                   <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <span className="truncate max-w-[120px] sm:max-w-xs">{activeSuitor.inviteDateLocation}</span>
+                  <span className="truncate max-w-[90px] sm:max-w-xs">{activeSuitor.inviteDateLocation}</span>
                 </div>
               </div>
 
               {/* Message Feed */}
-              <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 max-h-[380px]">
+              <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pr-1 sm:pr-2 mb-3">
                 {currentChat.map(msg => (
                   <div
                     key={msg.id}
@@ -320,20 +322,20 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
               </div>
 
               {/* Chat Input Bar */}
-              <form onSubmit={handleSendMessage} className="flex items-center gap-2 pt-2 border-t border-slate-800">
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2 pt-2.5 border-t border-slate-800 shrink-0">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={e => setInputMessage(e.target.value)}
                   placeholder={language === 'fr' ? `Envoyer un message rétro à ${activeSuitor.name}...` : `Send a retro message to ${activeSuitor.name}...`}
-                  className="flex-1 min-h-[44px] bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 placeholder:text-slate-600"
+                  className="flex-1 min-h-[44px] bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-base sm:text-xs font-retro text-slate-100 focus:outline-none focus:border-pink-500 placeholder:text-slate-600"
                 />
                 <button
                   type="submit"
                   disabled={!inputMessage.trim()}
-                  className="min-h-[44px] min-w-[44px] px-4 py-2.5 bg-pink-500 hover:bg-pink-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-pixel text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all shadow active:scale-95"
+                  className="min-h-[44px] min-w-[44px] px-4 py-2 bg-pink-500 hover:bg-pink-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-pixel text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 shrink-0"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  <Send className="w-4 h-4" />
                   <span className="hidden sm:inline">{t.sendBtn}</span>
                 </button>
               </form>

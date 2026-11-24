@@ -43,10 +43,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur border-b-2 border-pink-500/30 px-3 sm:px-6 md:px-8 py-2.5 sm:py-3">
+    <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur border-b-2 border-pink-500/30 px-3 sm:px-6 md:px-8 py-2 sm:py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-6 md:gap-8">
         {/* Zone 1: Brand Wordmark */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           {/* Mobile Menu Hamburger (Visible < md) */}
           <button
             onClick={() => {
@@ -54,7 +54,8 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               setMobileMenuOpen(prev => !prev);
             }}
             aria-label="Toggle navigation menu"
-            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-pink-400 hover:text-pink-300 hover:border-pink-500/50 transition-colors"
+            aria-expanded={mobileMenuOpen}
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-pink-400 hover:text-pink-300 hover:border-pink-500/50 transition-colors shrink-0 active:scale-95"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -65,7 +66,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               onNavigate('EVENTS_DIRECTORY');
               setMobileMenuOpen(false);
             }}
-            className="flex items-center gap-1.5 sm:gap-2 text-left group focus-visible:outline-none"
+            className="flex items-center gap-1.5 sm:gap-2 text-left group focus-visible:outline-none min-w-0"
           >
             <span className="font-pixel text-pink-500 text-xs sm:text-sm md:text-base tracking-tighter group-hover:text-pink-400 transition-colors whitespace-nowrap shrink-0">
               ♥ HeartByte
@@ -124,7 +125,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
           >
             <span>{t.navMatches}</span>
             {matchesCount > 0 && (
-              <span className="text-[10px] bg-pink-500 text-white px-1.5 py-0.2 rounded font-pixel">
+              <span className="text-[10px] bg-pink-500 text-white px-1.5 py-0.2 rounded font-pixel tabular-nums">
                 {matchesCount}
               </span>
             )}
@@ -157,14 +158,14 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             <span className="font-pixel text-[11px] font-bold">{language.toUpperCase()}</span>
           </button>
 
-          {/* CRT scanlines toggle */}
+          {/* CRT scanlines toggle (Desktop / Tablet >= md; housed in drawer on mobile) */}
           <button
             onClick={() => {
               audio.playSelect();
               onToggleCrt();
             }}
             title={crtEnabled ? 'Disable CRT Scanlines' : 'Enable CRT Scanlines'}
-            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
+            className={`hidden md:flex min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 items-center justify-center gap-1 ${
               crtEnabled
                 ? 'border-cyan-500 text-cyan-300 bg-cyan-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
@@ -174,14 +175,14 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             <span className="font-retro hidden xl:inline text-[10px]">CRT</span>
           </button>
 
-          {/* 8-bit BGM Toggle */}
+          {/* 8-bit BGM Toggle (Desktop / Tablet >= md) */}
           <button
             onClick={() => {
               audio.playSelect();
               onToggleBgm();
             }}
             title={bgmActive ? 'Mute Chiptune BGM' : 'Play 8-Bit BGM'}
-            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
+            className={`hidden md:flex min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 items-center justify-center gap-1 ${
               bgmActive
                 ? 'border-pink-500 text-pink-300 bg-pink-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
@@ -191,14 +192,14 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             <span className="font-retro hidden xl:inline text-[10px]">BGM</span>
           </button>
 
-          {/* Master Sound FX Toggle */}
+          {/* Master Sound FX Toggle (Desktop / Tablet >= md) */}
           <button
             onClick={() => {
               audio.playSelect();
               onToggleMute();
             }}
             title={isMuted ? 'Unmute 8-Bit Sound FX' : 'Mute Sound FX'}
-            className={`min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 flex items-center justify-center gap-1 ${
+            className={`hidden md:flex min-h-[44px] min-w-[44px] p-2 rounded-lg border text-xs transition-all active:scale-95 items-center justify-center gap-1 ${
               !isMuted
                 ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
                 : 'border-slate-800 text-slate-500 hover:text-slate-300'
@@ -216,15 +217,15 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             }}
             className="min-h-[44px] px-3 sm:px-4 py-2 text-xs font-pixel text-slate-950 bg-pink-500 hover:bg-pink-400 active:scale-95 rounded-lg shadow-md transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5"
           >
-            <Heart className="w-4 h-4 fill-slate-950" />
-            <span className="hidden sm:inline">{t.speedDateBtn}</span>
+            <Heart className="w-4 h-4 fill-slate-950 shrink-0" />
+            <span className="hidden xs:inline">{t.speedDateBtn}</span>
           </button>
         </div>
       </div>
 
       {/* Mobile Navigation Drawer / Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden mt-3 pt-3 border-t border-slate-800 animate-fade-in bg-slate-950/95 rounded-xl p-3 space-y-1.5 shadow-2xl">
+        <div className="md:hidden mt-2.5 pt-3 border-t border-slate-800 animate-fade-in bg-slate-950/95 rounded-xl p-3 space-y-1.5 shadow-2xl max-h-[75dvh] overflow-y-auto">
           <div className="text-[10px] font-pixel text-cyan-400 px-3 py-1 uppercase tracking-wider">
             {language === 'fr' ? 'Menu de Navigation' : 'Navigation Menu'}
           </div>
@@ -287,7 +288,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               <span>{t.navMatches}</span>
             </div>
             {matchesCount > 0 ? (
-              <span className="text-[10px] bg-pink-400 text-slate-950 px-2 py-0.5 rounded font-pixel">
+              <span className="text-[10px] bg-pink-400 text-slate-950 px-2 py-0.5 rounded font-pixel tabular-nums">
                 {matchesCount} {language === 'fr' ? 'Matchs' : 'Matches'}
               </span>
             ) : (
@@ -309,6 +310,59 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             </div>
             <span className="text-[10px] font-pixel opacity-70">05</span>
           </button>
+
+          {/* Retro Display & Audio Controls for Mobile */}
+          <div className="pt-2.5 mt-2 border-t border-slate-800">
+            <div className="text-[10px] font-pixel text-slate-400 px-1 mb-2 uppercase tracking-wider">
+              {language === 'fr' ? 'Audio & Affichage Rétro' : 'Audio & Retro Display'}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onToggleCrt();
+                }}
+                className={`min-h-[44px] px-2 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                  crtEnabled
+                    ? 'border-cyan-500 text-cyan-300 bg-cyan-950/40'
+                    : 'border-slate-800 text-slate-400 bg-slate-900'
+                }`}
+              >
+                <Monitor className="w-4 h-4" />
+                <span>CRT</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onToggleBgm();
+                }}
+                className={`min-h-[44px] px-2 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                  bgmActive
+                    ? 'border-pink-500 text-pink-300 bg-pink-950/40'
+                    : 'border-slate-800 text-slate-400 bg-slate-900'
+                }`}
+              >
+                <Music className="w-4 h-4" />
+                <span>BGM</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  onToggleMute();
+                }}
+                className={`min-h-[44px] px-2 py-2 rounded-lg border text-xs font-retro flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                  !isMuted
+                    ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40'
+                    : 'border-slate-800 text-slate-400 bg-slate-900'
+                }`}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                <span>{isMuted ? 'OFF' : 'SFX'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </header>

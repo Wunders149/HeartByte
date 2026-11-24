@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CustomModal } from './CustomModal';
-import { ShieldCheck, Lock, KeyRound, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { ShieldCheck, Lock, KeyRound, AlertCircle } from 'lucide-react';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
 
@@ -13,7 +13,6 @@ interface OrganizerAuthModalProps {
 }
 
 const DEFAULT_ORGANIZER_PIN = 'HEARTBYTE89';
-const ORGANIZER_EMAIL = 'razafimahefaphilibert7@gmail.com';
 
 export const OrganizerAuthModal: React.FC<OrganizerAuthModalProps> = ({
   isOpen,
@@ -37,30 +36,18 @@ export const OrganizerAuthModal: React.FC<OrganizerAuthModalProps> = ({
       sessionStorage.setItem('heartbyte_admin_auth', 'true');
       setErrorMsg(null);
       setPasscode('');
-      onSuccessCreateEvent();
+      if (onSuccessOpenDashboard) {
+        onSuccessOpenDashboard();
+      } else {
+        onSuccessCreateEvent();
+      }
     } else {
       audio.playPass();
       setErrorMsg(
         language === 'fr'
-          ? 'Code secret organisateur invalide. Utilisez HEARTBYTE89 ou l’accès 1-clic.'
-          : 'Invalid organizer keycode. Use HEARTBYTE89 or 1-click access below.'
+          ? 'Code secret administrateur invalide. Seul l’administrateur peut publier.'
+          : 'Invalid admin keycode. Only the admin is authorized to post.'
       );
-    }
-  };
-
-  const handleQuickAccess = () => {
-    audio.playMatchFanfare();
-    sessionStorage.setItem('heartbyte_admin_auth', 'true');
-    setErrorMsg(null);
-    setPasscode('');
-    onSuccessCreateEvent();
-  };
-
-  const handleOpenDashboardDirectly = () => {
-    audio.playSelect();
-    sessionStorage.setItem('heartbyte_admin_auth', 'true');
-    if (onSuccessOpenDashboard) {
-      onSuccessOpenDashboard();
     }
   };
 
@@ -72,11 +59,11 @@ export const OrganizerAuthModal: React.FC<OrganizerAuthModalProps> = ({
         setPasscode('');
         onClose();
       }}
-      title={language === 'fr' ? 'Accès Organisateur Vérifié' : 'Organizer Verification'}
+      title={language === 'fr' ? 'Connexion Administrateur' : 'Admin Verification'}
       subtitle={
         language === 'fr'
-          ? 'Seuls les organisateurs peuvent publier et gérer des soirées de speed dating caritatives.'
-          : 'Only authorized organizers can publish and manage community speed dating fundraisers.'
+          ? 'Seul l’administrateur peut accéder à l’espace de publication et créer des événements.'
+          : 'Only the administrator can access the posting console and publish new events.'
       }
       icon={<Lock className="w-5 h-5 text-yellow-400" />}
       badge={t.staffOnlyBadge}
@@ -93,13 +80,14 @@ export const OrganizerAuthModal: React.FC<OrganizerAuthModalProps> = ({
             <input
               type="password"
               autoFocus
+              required
               value={passcode}
               onChange={e => {
                 setPasscode(e.target.value);
                 if (errorMsg) setErrorMsg(null);
               }}
-              placeholder="HEARTBYTE89 / 8888"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs font-pixel text-yellow-300 focus:outline-none focus:border-yellow-400 placeholder:text-slate-600 transition-colors"
+              placeholder="••••••••••"
+              className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-base sm:text-xs font-pixel text-yellow-300 focus:outline-none focus:border-yellow-400 placeholder:text-slate-600 transition-colors"
             />
           </div>
         </div>
@@ -111,39 +99,14 @@ export const OrganizerAuthModal: React.FC<OrganizerAuthModalProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-          <button
-            type="submit"
-            className="w-full min-h-[44px] py-2.5 px-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
-            <span>{language === 'fr' ? 'Déverrouiller & Créer' : 'Unlock & Create Event'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleQuickAccess}
-            className="w-full min-h-[44px] py-2.5 px-3 bg-slate-950 hover:bg-slate-800 border border-yellow-500/50 text-yellow-300 font-retro text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-95"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-yellow-400" />
-            <span>{language === 'fr' ? 'Accès 1-Clic Organisateur' : '1-Click Quick Unlock'}</span>
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="w-full min-h-[44px] py-2.5 px-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>{t.verifyUnlockBtn}</span>
+        </button>
       </form>
-
-      {/* Alternative link to open entire dashboard */}
-      {onSuccessOpenDashboard && (
-        <div className="mt-4 pt-4 border-t border-slate-800/80 text-center">
-          <button
-            type="button"
-            onClick={handleOpenDashboardDirectly}
-            className="text-xs font-retro text-slate-400 hover:text-yellow-300 inline-flex items-center gap-1 transition-colors"
-          >
-            <span>{language === 'fr' ? 'Ouvrir le Tableau de Bord Organisateur Complet' : 'Open Full Organizer Admin Dashboard'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
     </CustomModal>
   );
 };
