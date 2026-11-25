@@ -1,0 +1,584 @@
+{
+  "entities": {
+    "AvatarConfig": {
+      "title": "AvatarConfig",
+      "description": "8-bit pixel sprite customization attributes for an attendee or player.",
+      "type": "object",
+      "properties": {
+        "skinTone": {
+          "type": "string",
+          "enum": ["fair", "peach", "warm-tan", "deep-bronze", "cyber-lilac", "alien-mint"]
+        },
+        "hairStyle": {
+          "type": "string",
+          "enum": ["spiky", "bob", "pixie", "afro", "long", "cap", "fade"]
+        },
+        "hairColor": {
+          "type": "string",
+          "enum": ["neon-cyan", "neon-pink", "raven", "golden", "ruby", "lavender", "emerald"]
+        },
+        "eyeStyle": {
+          "type": "string",
+          "enum": ["normal", "wink", "shades", "round-glasses", "sparkle", "sleepy"]
+        },
+        "outfitStyle": {
+          "type": "string",
+          "enum": ["arcade-jacket", "cyber-turtleneck", "cozy-sweater", "vintage-shirt", "hoodie"]
+        },
+        "outfitColor": {
+          "type": "string",
+          "enum": ["cyan", "magenta", "yellow", "purple", "emerald", "crimson"]
+        },
+        "accessory": {
+          "type": "string",
+          "enum": ["none", "headphones", "cat-ears", "bandana", "gold-chain", "boba"]
+        },
+        "expression": {
+          "type": "string",
+          "enum": ["idle", "happy", "blush", "shock", "love", "skeptical"]
+        }
+      },
+      "required": ["skinTone", "hairStyle", "hairColor", "eyeStyle", "outfitStyle", "outfitColor", "accessory", "expression"]
+    },
+    "TicketTier": {
+      "title": "TicketTier",
+      "description": "Fundraiser ticket pricing tier and perks.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "price": {
+          "type": "number"
+        },
+        "perks": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "isPopular": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "name", "price", "perks"]
+    },
+    "CommunityEvent": {
+      "title": "CommunityEvent",
+      "description": "Community speed dating fundraiser campaign created exclusively by an admin.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "causeCategory": {
+          "type": "string",
+          "enum": ["arts", "community", "environment", "education", "tech"]
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "beneficiaryName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "fundraisingGoal": {
+          "type": "number"
+        },
+        "currentFundsRaised": {
+          "type": "number"
+        },
+        "attendeeCount": {
+          "type": "number"
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "time": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "venueName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "venueAddress": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "maxCapacity": {
+          "type": "number"
+        },
+        "ticketTiers": {
+          "type": "array",
+          "description": "Up to 5 TicketTier objects"
+        },
+        "creatorName": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "creatorId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "customCausePrompt": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "open", "active", "completed"]
+        },
+        "offlineDonations": {
+          "type": "number"
+        },
+        "lastRegistrationId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "subtitle",
+        "causeCategory",
+        "description",
+        "beneficiaryName",
+        "fundraisingGoal",
+        "currentFundsRaised",
+        "attendeeCount",
+        "date",
+        "time",
+        "venueName",
+        "venueAddress",
+        "maxCapacity",
+        "ticketTiers",
+        "creatorName",
+        "creatorId",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PublicAttendeeProfile": {
+      "title": "PublicAttendeeProfile",
+      "description": "Non-PII public speed-dating booth profile for an event attendee.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "attendeeName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "pronouns": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "interestedIn": {
+          "type": "string",
+          "enum": ["all", "men", "women", "nonbinary"]
+        },
+        "bio": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "avatar": {
+          "type": "object",
+          "$ref": "#/entities/AvatarConfig"
+        },
+        "checkedIn": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "eventId", "userId", "attendeeName", "pronouns", "interestedIn", "bio", "avatar", "checkedIn", "createdAt", "updatedAt"]
+    },
+    "EventRegistration": {
+      "title": "EventRegistration",
+      "description": "Private attendee ticket registration and donation record containing PII.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "attendeeName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "attendeeEmail": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 120
+        },
+        "pronouns": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "interestedIn": {
+          "type": "string",
+          "enum": ["all", "men", "women", "nonbinary"]
+        },
+        "ticketTierId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ticketPrice": {
+          "type": "number"
+        },
+        "additionalDonation": {
+          "type": "number"
+        },
+        "totalAmount": {
+          "type": "number"
+        },
+        "bio": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "avatar": {
+          "type": "object",
+          "$ref": "#/entities/AvatarConfig"
+        },
+        "registeredAt": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "ticketCode": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "checkedIn": {
+          "type": "boolean"
+        },
+        "checkedInAt": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "eventId",
+        "userId",
+        "attendeeName",
+        "attendeeEmail",
+        "pronouns",
+        "interestedIn",
+        "ticketTierId",
+        "ticketPrice",
+        "additionalDonation",
+        "totalAmount",
+        "bio",
+        "avatar",
+        "registeredAt",
+        "ticketCode",
+        "checkedIn",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user's 8-bit avatar and speed dating persona.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "pronouns": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "interestedIn": {
+          "type": "string",
+          "enum": ["all", "men", "women", "nonbinary"]
+        },
+        "vibeTag": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "bio": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "favorite8BitGame": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "avatar": {
+          "type": "object",
+          "$ref": "#/entities/AvatarConfig"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "name", "pronouns", "interestedIn", "vibeTag", "bio", "favorite8BitGame", "avatar", "createdAt", "updatedAt"]
+    },
+    "DateResultRecord": {
+      "title": "DateResultRecord",
+      "description": "Speed date outcome and player verdict for a suitor.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "suitorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "playerDecision": {
+          "type": "string",
+          "enum": ["like", "pass", "superlike"]
+        },
+        "suitorDecision": {
+          "type": "string",
+          "enum": ["like", "pass"]
+        },
+        "finalChemistry": {
+          "type": "number"
+        },
+        "playerNotes": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "isMutualMatch": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "suitorId", "eventId", "playerDecision", "suitorDecision", "finalChemistry", "playerNotes", "isMutualMatch", "createdAt", "updatedAt"]
+    },
+    "MatchChatMessage": {
+      "title": "MatchChatMessage",
+      "description": "Chat message between the player and a mutual match.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "suitorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sender": {
+          "type": "string",
+          "enum": ["player", "suitor"]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "timestamp": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "isDateInvite": {
+          "type": "boolean"
+        },
+        "dateAccepted": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "userId", "suitorId", "sender", "text", "timestamp", "createdAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Authorized organizer admin role record.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["organizer", "superadmin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/events/{eventId}": {
+      "schema": {
+        "$ref": "#/entities/CommunityEvent"
+      },
+      "description": "Community speed dating fundraiser campaigns. Only admin can create or delete."
+    },
+    "/events/{eventId}/publicProfiles/{registrationId}": {
+      "schema": {
+        "$ref": "#/entities/PublicAttendeeProfile"
+      },
+      "description": "Non-PII speed dating floor profiles for registered attendees of an event."
+    },
+    "/registrations/{registrationId}": {
+      "schema": {
+        "$ref": "#/entities/EventRegistration"
+      },
+      "description": "Private attendee ticket registrations and donations containing PII (email, ticket code)."
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Authenticated user's 8-bit avatar and speed dating persona."
+    },
+    "/users/{userId}/dateResults/{suitorId}": {
+      "schema": {
+        "$ref": "#/entities/DateResultRecord"
+      },
+      "description": "Private speed-date verdicts and chemistry scores for a user."
+    },
+    "/users/{userId}/matchMessages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/MatchChatMessage"
+      },
+      "description": "Private PDA messenger messages for a user's mutual matches."
+    },
+    "/admins/{uid}": {
+      "schema": {
+        "$ref": "#/entities/AdminRecord"
+      },
+      "description": "Authorized organizer administrator role directory."
+    }
+  }
+}

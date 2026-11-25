@@ -4,8 +4,15 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppScreen, AppPortal, PlayerProfile, DateResult, PlayerDecision, CommunityEvent, EventRegistration } from './types/dating';
-import { INITIAL_COMMUNITY_EVENTS, INITIAL_REGISTRATIONS } from './data/communityEvents';
+import {
+  AppScreen,
+  AppPortal,
+  PlayerProfile,
+  DateResult,
+  PlayerDecision,
+  CommunityEvent,
+  EventRegistration,
+} from './types/dating';
 import { registrationToSuitor } from './utils/suitorGenerator';
 import { PublicHeader } from './components/PublicHeader';
 import { TitleScreen } from './components/TitleScreen';
@@ -23,9 +30,29 @@ import { EventRoadmap } from './components/EventRoadmap';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { audio } from './utils/audio';
 import { Language, TRANSLATIONS } from './utils/i18n';
+import { useFirebase } from './context/FirebaseContext';
+import {
+  addOfflineDonationBatch,
+  clearDateResultsInFirestore,
+  createEventInFirestore,
+  createRegistrationBatch,
+  deleteEventInFirestore,
+  deleteRegistrationBatch,
+  saveDateResultInFirestore,
+  saveMatchMessageInFirestore,
+  saveUserProfileInFirestore,
+  StoredMatchMessage,
+  subscribeToDateResults,
+  subscribeToEventPublicProfiles,
+  subscribeToEvents,
+  subscribeToMatchMessages,
+  subscribeToRegistrations,
+  subscribeToUserProfile,
+  toggleCheckInBatch,
+  updateEventInFirestore,
+} from './utils/firestoreSync';
 import { ShieldCheck } from 'lucide-react';
 
-// Clean initial player profile (no fictional demo name/character)
 const CLEAN_INITIAL_PLAYER_PROFILE: PlayerProfile = {
   name: '',
   pronouns: 'they/them',
@@ -41,95 +68,40 @@ const CLEAN_INITIAL_PLAYER_PROFILE: PlayerProfile = {
     outfitStyle: 'arcade-jacket',
     outfitColor: 'magenta',
     accessory: 'headphones',
-    expression: 'idle'
-  }
+    expression: 'idle',
+  },
 };
 
-// Safe helper to purge cached mock events from previous runs
-function getCleanInitialEvents(): CommunityEvent[] {
-  try {
-    const saved = localStorage.getItem('heartbyte_events');
-    if (!saved) return INITIAL_COMMUNITY_EVENTS;
-    const parsed = JSON.parse(saved);
-    const mockIds = ['starlight-arcade-save', 'neon-shelter-drive', 'whisker-cat-garden', 'downtown-indie-dev'];
-    if (Array.isArray(parsed) && parsed.some((e: any) => mockIds.includes(e.id))) {
-      localStorage.removeItem('heartbyte_events');
-      return [];
-    }
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-// Safe helper to purge cached mock registrations from previous runs
-function getCleanInitialRegistrations(): EventRegistration[] {
-  try {
-    const saved = localStorage.getItem('heartbyte_registrations');
-    if (!saved) return INITIAL_REGISTRATIONS;
-    const parsed = JSON.parse(saved);
-    const mockIds = ['reg-nova', 'reg-kai', 'reg-rowan', 'reg-blaze'];
-    if (Array.isArray(parsed) && parsed.some((r: any) => mockIds.includes(r.id))) {
-      localStorage.removeItem('heartbyte_registrations');
-      return [];
-    }
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-// Safe helper to purge cached mock player profile
-function getCleanInitialPlayerProfile(): PlayerProfile {
-  try {
-    const saved = localStorage.getItem('heartbyte_player_profile');
-    if (!saved) return CLEAN_INITIAL_PLAYER_PROFILE;
-    const parsed = JSON.parse(saved);
-    if (parsed.name === 'Alex Heart') {
-      localStorage.removeItem('heartbyte_player_profile');
-      return CLEAN_INITIAL_PLAYER_PROFILE;
-    }
-    return parsed;
-  } catch {
-    return CLEAN_INITIAL_PLAYER_PROFILE;
-  }
-}
-
 export default function App() {
-  // Top-level portal separation: 'public' (attendees & speed daters) vs 'admin' (organizers)
+  const { user, isAuthReady, isAdmin } = useFirebase();
+
   const [portal, setPortal] = useState<AppPortal>(() => {
     return (localStorage.getItem('heartbyte_active_portal') as AppPortal) || 'public';
   });
 
   const [screen, setScreen] = useState<AppScreen>('TITLE');
-  const [playerProfile, setPlayerProfile] = useState<PlayerProfile>(getCleanInitialPlayerProfile);
+  const [playerProfile, setPlayerProfile] = useState<PlayerProfile>(CLEAN_INITIAL_PLAYER_PROFILE);
+  const [hasRemoteProfile, setHasRemoteProfile] = useState(false);
 
-  // Community Events state
-  const [events, setEvents] = useState<CommunityEvent[]>(getCleanInitialEvents);
+  // Firestore-backed collections
+  const [events, setEvents] = useState<CommunityEvent[]>([]);
+  const [activeEventId, setActiveEventId] = useState<string>('');
+  const [publicProfiles, setPublicProfiles] = useState<EventRegistration[]>([]);
+  const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
+  const [results, setResults] = useState<DateResult[]>([]);
+  const [storedMessages, setStoredMessages] = useState<StoredMatchMessage[]>([]);
 
-  const [activeEventId, setActiveEventId] = useState<string>(() => {
-    const initialEvents = getCleanInitialEvents();
-    return initialEvents[0]?.id || '';
-  });
-
-  // Registrations state
-  const [registrations, setRegistrations] = useState<EventRegistration[]>(getCleanInitialRegistrations);
-
-  // Admin authentication & Modals state
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('heartbyte_admin_auth') === 'true';
-  });
+  // Modals & Admin Session
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isOrganizerAuthOpen, setIsOrganizerAuthOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [registerTargetEvent, setRegisterTargetEvent] = useState<CommunityEvent | null>(null);
 
-  // Dating session state
-  const [results, setResults] = useState<DateResult[]>([]);
+  // Dating session queue state
   const [activeSuitorId, setActiveSuitorId] = useState<string>('');
   const [datingQueue, setDatingQueue] = useState<string[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
-  
+
   // Language state ('en' or 'fr') - defaults to French 'fr'
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('heartbyte_lang') as Language;
@@ -141,7 +113,6 @@ export default function App() {
   const [bgmActive, setBgmActive] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
-  // Sync state to localStorage
   useEffect(() => {
     localStorage.setItem('heartbyte_lang', language);
   }, [language]);
@@ -150,25 +121,86 @@ export default function App() {
     localStorage.setItem('heartbyte_active_portal', portal);
   }, [portal]);
 
+  // Attach Firestore listeners ONLY when auth is ready and user is authenticated
+  useEffect(() => {
+    if (!isAuthReady) return;
+
+    if (!user) {
+      setEvents([]);
+      setPublicProfiles([]);
+      setRegistrations([]);
+      setResults([]);
+      setStoredMessages([]);
+      setHasRemoteProfile(false);
+      setPlayerProfile(CLEAN_INITIAL_PLAYER_PROFILE);
+      return;
+    }
+
+    const unsubEvents = subscribeToEvents(isAdmin, (loadedEvents) => {
+      setEvents(loadedEvents);
+      setActiveEventId((prev) => {
+        if (prev && loadedEvents.some((e) => e.id === prev)) return prev;
+        return loadedEvents[0]?.id || '';
+      });
+    });
+
+    const unsubRegistrations = subscribeToRegistrations(user.uid, isAdmin, (loadedRegs) => {
+      setRegistrations(loadedRegs);
+    });
+
+    const unsubProfile = subscribeToUserProfile(user.uid, (remoteProfile) => {
+      if (remoteProfile) {
+        setPlayerProfile(remoteProfile);
+        setHasRemoteProfile(true);
+      } else {
+        setHasRemoteProfile(false);
+        setPlayerProfile((prev) => ({
+          ...CLEAN_INITIAL_PLAYER_PROFILE,
+          ...prev,
+          name: prev.name || user.displayName || '',
+        }));
+      }
+    });
+
+    const unsubResults = subscribeToDateResults(user.uid, (loadedResults) => {
+      setResults(loadedResults);
+    });
+
+    const unsubMessages = subscribeToMatchMessages(user.uid, (loadedMsgs) => {
+      setStoredMessages(loadedMsgs);
+    });
+
+    return () => {
+      unsubEvents();
+      unsubRegistrations();
+      unsubProfile();
+      unsubResults();
+      unsubMessages();
+    };
+  }, [isAuthReady, user, isAdmin]);
+
+  // Subscribe to non-PII public attendee booth profiles for the active event
+  useEffect(() => {
+    if (!isAuthReady || !user || !activeEventId) {
+      setPublicProfiles([]);
+      return;
+    }
+
+    const unsubProfiles = subscribeToEventPublicProfiles(activeEventId, (profiles) => {
+      setPublicProfiles(profiles);
+    });
+
+    return () => {
+      unsubProfiles();
+    };
+  }, [isAuthReady, user, activeEventId]);
+
   const handleToggleLanguage = () => {
-    setLanguage(prev => (prev === 'en' ? 'fr' : 'en'));
+    setLanguage((prev) => (prev === 'en' ? 'fr' : 'en'));
   };
 
-  useEffect(() => {
-    localStorage.setItem('heartbyte_events', JSON.stringify(events));
-  }, [events]);
-
-  useEffect(() => {
-    localStorage.setItem('heartbyte_registrations', JSON.stringify(registrations));
-  }, [registrations]);
-
-  useEffect(() => {
-    localStorage.setItem('heartbyte_player_profile', JSON.stringify(playerProfile));
-  }, [playerProfile]);
-
-  // Sound toggles
   const handleToggleCrt = () => {
-    setCrtEnabled(prev => !prev);
+    setCrtEnabled((prev) => !prev);
   };
 
   const handleToggleBgm = () => {
@@ -183,135 +215,110 @@ export default function App() {
     if (nextMuted) setBgmActive(false);
   };
 
-  // Handle Event Creation (Admin Only)
-  const handleCreateEvent = (newEvent: CommunityEvent) => {
-    if (!isAdminAuthenticated || portal !== 'admin') return;
-    setEvents(prev => [newEvent, ...prev]);
+  // Admin Only: Create Event
+  const handleCreateEvent = async (newEvent: CommunityEvent) => {
+    if (!isAdmin || !user || portal !== 'admin') return;
+    await createEventInFirestore(newEvent, user.uid);
     setActiveEventId(newEvent.id);
   };
 
-  // Handle Event Updates (Admin Only)
-  const handleUpdateEvent = (updatedEvent: CommunityEvent) => {
-    if (!isAdminAuthenticated) return;
-    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+  // Admin Only: Update Event
+  const handleUpdateEvent = async (updatedEvent: CommunityEvent) => {
+    if (!isAdmin) return;
+    await updateEventInFirestore(updatedEvent);
   };
 
-  // Handle Event Deletion (Admin Only)
-  const handleDeleteEvent = (eventId: string) => {
-    if (!isAdminAuthenticated) return;
-    setEvents(prev => prev.filter(e => e.id !== eventId));
+  // Admin Only: Delete Event
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!isAdmin) return;
+    await deleteEventInFirestore(eventId);
     if (activeEventId === eventId && events.length > 1) {
-      const remaining = events.filter(e => e.id !== eventId);
-      setActiveEventId(remaining[0].id);
+      const remaining = events.filter((e) => e.id !== eventId);
+      setActiveEventId(remaining[0]?.id || '');
     }
   };
 
-  // Handle Offline Donation / Sponsor Match (Admin Only)
-  const handleAddOfflineDonation = (eventId: string, amount: number, donorName: string) => {
-    if (!isAdminAuthenticated) return;
-    setEvents(prev => prev.map(evt => {
-      if (evt.id === eventId) {
-        return {
-          ...evt,
-          currentFundsRaised: evt.currentFundsRaised + amount,
-          offlineDonations: (evt.offlineDonations || 0) + amount
-        };
-      }
-      return evt;
-    }));
-
-    // Record sponsor registration record
-    const sponsorReg: EventRegistration = {
-      id: `reg-sponsor-${Date.now()}`,
-      eventId,
-      attendeeName: donorName,
-      attendeeEmail: 'sponsor@community.local',
-      pronouns: 'partner',
-      interestedIn: 'all',
-      ticketTierId: 'tier-sponsor',
-      ticketPrice: 0,
-      additionalDonation: amount,
-      totalAmount: amount,
-      registeredAt: 'Just now',
-      ticketCode: `SPONSOR-${Math.floor(100 + Math.random() * 900)}`,
-      checkedIn: true,
-      bio: 'Official Community Business Partner / Match Donor',
-      avatar: {
-        skinTone: 'cyber-lilac',
-        hairStyle: 'cap',
-        hairColor: 'golden',
-        eyeStyle: 'shades',
-        outfitStyle: 'arcade-jacket',
-        outfitColor: 'yellow',
-        accessory: 'gold-chain',
-        expression: 'love'
-      }
-    };
-
-    setRegistrations(prev => [sponsorReg, ...prev]);
+  // Admin Only: Offline Donation / Sponsor Match
+  const handleAddOfflineDonation = async (eventId: string, amount: number, donorName: string) => {
+    if (!isAdmin || !user) return;
+    const evt = events.find((e) => e.id === eventId);
+    if (!evt) return;
+    await addOfflineDonationBatch(evt, amount, donorName, user.uid);
   };
 
-  // Handle Attendee Check-In Toggle (Admin Only)
-  const handleToggleCheckIn = (registrationId: string) => {
-    if (!isAdminAuthenticated) return;
-    setRegistrations(prev => prev.map(reg => {
-      if (reg.id === registrationId) {
-        const nextState = !reg.checkedIn;
-        if (nextState) {
-          audio.playHeartGain();
-        } else {
-          audio.playPass();
-        }
-        return {
-          ...reg,
-          checkedIn: nextState,
-          checkedInAt: nextState ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined
-        };
-      }
-      return reg;
-    }));
-  };
-
-  // Handle Registration Deletion / Refund (Admin Only)
-  const handleDeleteRegistration = (registrationId: string) => {
-    if (!isAdminAuthenticated) return;
-    const reg = registrations.find(r => r.id === registrationId);
+  // Admin Only: Attendee Check-In Toggle
+  const handleToggleCheckIn = async (registrationId: string) => {
+    if (!isAdmin) return;
+    const reg = registrations.find((r) => r.id === registrationId);
     if (!reg) return;
-
-    // Deduct amount from event funds
-    setEvents(prev => prev.map(evt => {
-      if (evt.id === reg.eventId) {
-        return {
-          ...evt,
-          currentFundsRaised: Math.max(0, evt.currentFundsRaised - reg.totalAmount)
-        };
-      }
-      return evt;
-    }));
-
-    setRegistrations(prev => prev.filter(r => r.id !== registrationId));
+    const nextState = !reg.checkedIn;
+    if (nextState) {
+      audio.playHeartGain();
+    } else {
+      audio.playPass();
+    }
+    await toggleCheckInBatch(reg, nextState);
   };
 
-  // Handle User Registration & Donation
-  const handleCompleteRegistration = (newRegistration: EventRegistration) => {
-    setRegistrations(prev => [newRegistration, ...prev]);
-    
-    // Update funds raised for the event
-    setEvents(prev => prev.map(evt => {
-      if (evt.id === newRegistration.eventId) {
-        return {
-          ...evt,
-          currentFundsRaised: evt.currentFundsRaised + newRegistration.totalAmount
-        };
-      }
-      return evt;
-    }));
+  // Admin Only: Delete / Refund Registration
+  const handleDeleteRegistration = async (registrationId: string) => {
+    if (!isAdmin) return;
+    const reg = registrations.find((r) => r.id === registrationId);
+    if (!reg) return;
+    const evt = events.find((e) => e.id === reg.eventId);
+    await deleteRegistrationBatch(reg, evt);
+  };
+
+  // Authenticated User: Complete Registration & Donation Atomically
+  const handleCompleteRegistration = async (newRegistration: EventRegistration) => {
+    if (!user) return;
+    const targetEvt = events.find((e) => e.id === newRegistration.eventId);
+    if (!targetEvt) return;
+    await createRegistrationBatch(newRegistration, targetEvt, user.uid);
+  };
+
+  const handleSaveProfile = async (nextProfile: PlayerProfile) => {
+    setPlayerProfile(nextProfile);
+    if (user) {
+      await saveUserProfileInFirestore(user.uid, nextProfile, hasRemoteProfile);
+    }
   };
 
   const openRegisterModalFor = (event: CommunityEvent) => {
     setRegisterTargetEvent(event);
     setIsRegisterModalOpen(true);
   };
+
+  const activeEvent = events.find((e) => e.id === activeEventId) || events[0] || null;
+
+  // Use non-PII publicProfiles for the active event floor; fallback to user's own registrations if needed
+  const activeEventAttendees = useMemo(() => {
+    if (!activeEvent) return [];
+    if (publicProfiles.length > 0) return publicProfiles;
+    return registrations.filter((r) => r.eventId === activeEvent.id);
+  }, [publicProfiles, registrations, activeEvent]);
+
+  const eventSuitors = useMemo(() => {
+    if (!activeEvent) return [];
+    return activeEventAttendees.map((r) => registrationToSuitor(r, activeEvent, language));
+  }, [activeEventAttendees, activeEvent, language]);
+
+  const allSuitors = useMemo(() => {
+    const mergedMap = new Map<string, EventRegistration>();
+    registrations.forEach((r) => mergedMap.set(r.id, r));
+    publicProfiles.forEach((p) => {
+      if (!mergedMap.has(p.id)) mergedMap.set(p.id, p);
+    });
+    return Array.from(mergedMap.values()).map((r) => {
+      const evt = events.find((e) => e.id === r.eventId);
+      return registrationToSuitor(r, evt, language);
+    });
+  }, [registrations, publicProfiles, events, language]);
+
+  const currentSuitor = eventSuitors.find((s) => s.id === activeSuitorId) || eventSuitors[0] || null;
+  const matchedSuitors = allSuitors.filter((s) =>
+    results.some((r) => r.suitorId === s.id && r.isMutualMatch)
+  );
 
   // Start Speed Dating with a specific suitor
   const handleStartDateWith = (suitorId: string) => {
@@ -331,9 +338,9 @@ export default function App() {
       }
       return;
     }
-    const alreadyDated = new Set(results.map(r => r.suitorId));
-    const remaining = eventSuitors.filter(s => !alreadyDated.has(s.id)).map(s => s.id);
-    const queue = remaining.length > 0 ? remaining : eventSuitors.map(s => s.id);
+    const alreadyDated = new Set(results.map((r) => r.suitorId));
+    const remaining = eventSuitors.filter((s) => !alreadyDated.has(s.id)).map((s) => s.id);
+    const queue = remaining.length > 0 ? remaining : eventSuitors.map((s) => s.id);
 
     setDatingQueue(queue);
     setCurrentQueueIndex(0);
@@ -342,13 +349,13 @@ export default function App() {
   };
 
   // Handle completion of a speed date round
-  const handleFinishDate = (
+  const handleFinishDate = async (
     suitorId: string,
     decision: PlayerDecision,
     finalChemistry: number,
     notes: string
   ) => {
-    const suitor = allSuitors.find(s => s.id === suitorId);
+    const suitor = allSuitors.find((s) => s.id === suitorId);
     const suitorLikedBack = suitor ? finalChemistry >= suitor.minMatchChemistry : false;
     const isMutualMatch = (decision === 'like' || decision === 'superlike') && suitorLikedBack;
 
@@ -358,13 +365,18 @@ export default function App() {
       suitorDecision: suitorLikedBack ? 'like' : 'pass',
       finalChemistry,
       playerNotes: notes,
-      isMutualMatch
+      isMutualMatch,
     };
 
-    setResults(prev => {
-      const filtered = prev.filter(r => r.suitorId !== suitorId);
+    const existing = results.some((r) => r.suitorId === suitorId);
+    setResults((prev) => {
+      const filtered = prev.filter((r) => r.suitorId !== suitorId);
       return [...filtered, newResult];
     });
+
+    if (user && activeEvent) {
+      void saveDateResultInFirestore(user.uid, activeEvent.id, newResult, existing);
+    }
 
     if (currentQueueIndex + 1 < datingQueue.length) {
       const nextIdx = currentQueueIndex + 1;
@@ -407,34 +419,15 @@ export default function App() {
   };
 
   // Reset all speed dating progress
-  const handleResetDates = () => {
+  const handleResetDates = async () => {
+    const suitorIds = results.map((r) => r.suitorId);
     setResults([]);
     setCurrentQueueIndex(0);
     setScreen('EVENT_LOBBY');
+    if (user && suitorIds.length > 0) {
+      await clearDateResultsInFirestore(user.uid, suitorIds);
+    }
   };
-
-  const activeEvent = events.find(e => e.id === activeEventId) || events[0] || null;
-
-  // Dynamically compute suitors seated at tables from real registrations for the active event
-  const eventSuitors = useMemo(() => {
-    if (!activeEvent) return [];
-    return registrations
-      .filter(r => r.eventId === activeEvent.id)
-      .map(r => registrationToSuitor(r, activeEvent, language));
-  }, [registrations, activeEvent, language]);
-
-  // All suitors across all registered events
-  const allSuitors = useMemo(() => {
-    return registrations.map(r => {
-      const evt = events.find(e => e.id === r.eventId);
-      return registrationToSuitor(r, evt, language);
-    });
-  }, [registrations, events, language]);
-
-  const currentSuitor = eventSuitors.find(s => s.id === activeSuitorId) || eventSuitors[0] || null;
-  const matchedSuitors = allSuitors.filter(s =>
-    results.some(r => r.suitorId === s.id && r.isMutualMatch)
-  );
 
   const t = TRANSLATIONS[language];
 
@@ -447,10 +440,9 @@ export default function App() {
           registrations={registrations}
           suitors={allSuitors}
           dateResults={results}
-          isAuthenticated={isAdminAuthenticated}
-          onAuthenticated={() => setIsAdminAuthenticated(true)}
+          isAuthenticated={isAdmin}
+          onAuthenticated={() => {}}
           onLogout={() => {
-            setIsAdminAuthenticated(false);
             setIsCreateModalOpen(false);
           }}
           crtEnabled={crtEnabled}
@@ -464,7 +456,7 @@ export default function App() {
           onUpdateEvent={handleUpdateEvent}
           onDeleteEvent={handleDeleteEvent}
           onOpenCreateEvent={() => {
-            if (isAdminAuthenticated) setIsCreateModalOpen(true);
+            if (isAdmin) setIsCreateModalOpen(true);
           }}
           onToggleCheckIn={handleToggleCheckIn}
           onDeleteRegistration={handleDeleteRegistration}
@@ -472,8 +464,8 @@ export default function App() {
           onExitToPublic={() => setPortal('public')}
         />
 
-        {/* Event Creator Modal: Exclusive to Authenticated Admins */}
-        {isAdminAuthenticated && (
+        {/* Event Creator Modal: Exclusive to Verified Admins */}
+        {isAdmin && (
           <EventCreatorModal
             isOpen={isCreateModalOpen}
             language={language}
@@ -539,9 +531,9 @@ export default function App() {
             registrations={registrations}
             activeEventId={activeEventId}
             language={language}
-            onSelectEvent={id => setActiveEventId(id)}
-            onOpenRegister={evt => openRegisterModalFor(evt)}
-            onEnterDatingFloor={evt => {
+            onSelectEvent={(id) => setActiveEventId(id)}
+            onOpenRegister={(evt) => openRegisterModalFor(evt)}
+            onEnterDatingFloor={(evt) => {
               setActiveEventId(evt.id);
               setScreen('EVENT_LOBBY');
             }}
@@ -553,13 +545,13 @@ export default function App() {
             event={activeEvent}
             suitors={eventSuitors}
             results={results}
-            registrations={registrations}
+            registrations={activeEventAttendees}
             playerProfile={playerProfile}
             language={language}
             onStartDateWith={handleStartDateWith}
             onStartFullEvent={handleStartFullEvent}
             onOpenAvatarCreator={() => setScreen('AVATAR_CREATOR')}
-            onOpenMessenger={suitorId => {
+            onOpenMessenger={(suitorId) => {
               if (suitorId) setActiveSuitorId(suitorId);
               setScreen('MATCH_MESSENGER');
             }}
@@ -579,7 +571,7 @@ export default function App() {
           <AvatarCreator
             profile={playerProfile}
             language={language}
-            onSaveProfile={setPlayerProfile}
+            onSaveProfile={handleSaveProfile}
             onStartDating={() => setScreen('EVENT_LOBBY')}
           />
         )}
@@ -603,7 +595,7 @@ export default function App() {
             suitors={allSuitors}
             playerProfile={playerProfile}
             language={language}
-            onOpenMessenger={suitorId => {
+            onOpenMessenger={(suitorId) => {
               if (suitorId) setActiveSuitorId(suitorId);
               setScreen('MATCH_MESSENGER');
             }}
@@ -618,6 +610,21 @@ export default function App() {
             playerProfile={playerProfile}
             initialSuitorId={activeSuitorId}
             language={language}
+            storedMessages={storedMessages}
+            onPersistMessage={(suitorId, msg) => {
+              if (user) {
+                void saveMatchMessageInFirestore(user.uid, {
+                  id: msg.id,
+                  userId: user.uid,
+                  suitorId,
+                  sender: msg.sender,
+                  text: msg.text,
+                  timestamp: msg.timestamp,
+                  isDateInvite: msg.isDateInvite,
+                  dateAccepted: msg.dateAccepted,
+                });
+              }
+            }}
             onBackToLobby={() => setScreen('EVENT_LOBBY')}
             onOpenReveal={() => setScreen('MATCH_REVEAL')}
           />
@@ -645,13 +652,11 @@ export default function App() {
         language={language}
         onClose={() => setIsOrganizerAuthOpen(false)}
         onSuccessCreateEvent={() => {
-          setIsAdminAuthenticated(true);
           setIsOrganizerAuthOpen(false);
           setPortal('admin');
           setIsCreateModalOpen(true);
         }}
         onSuccessOpenDashboard={() => {
-          setIsAdminAuthenticated(true);
           setIsOrganizerAuthOpen(false);
           setPortal('admin');
         }}
@@ -668,9 +673,7 @@ export default function App() {
       {/* Public Retro Bottom Status Bar (Clearance above mobile bottom nav) */}
       <footer className="w-full border-t border-slate-900 bg-slate-950/90 pt-3.5 pb-24 md:pb-3.5 px-4 text-center text-xs font-retro text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
-          <div>
-            {t.footerCopyright}
-          </div>
+          <div>{t.footerCopyright}</div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px]">
             <span>{t.footerProceeds}</span>
@@ -679,7 +682,7 @@ export default function App() {
             <button
               onClick={() => {
                 audio.playSelect();
-                if (isAdminAuthenticated) {
+                if (isAdmin) {
                   setPortal('admin');
                 } else {
                   setIsOrganizerAuthOpen(true);

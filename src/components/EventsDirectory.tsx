@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { CommunityEvent, EventRegistration, CauseCategory } from '../types/dating';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { Heart, Users, Calendar, MapPin, Sparkles, Building2, Lock } from 'lucide-react';
+import { useFirebase } from '../context/FirebaseContext';
+import { Users, Calendar, MapPin, Sparkles, Building2, Lock, LogIn } from 'lucide-react';
 
 interface EventsDirectoryProps {
   events: CommunityEvent[];
@@ -24,6 +25,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
   onEnterDatingFloor,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | CauseCategory>('all');
+  const { user, isAuthReady, signIn, authLoading } = useFirebase();
   const t = TRANSLATIONS[language];
 
   const filteredEvents = events.filter(e => {
@@ -33,7 +35,10 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
 
   // Calculate total community impact across all events
   const totalRaisedOverall = events.reduce((acc, e) => acc + e.currentFundsRaised, 0);
-  const totalRegistrations = registrations.length;
+  const totalRegistrations = events.reduce(
+    (acc, e) => acc + (typeof e.attendeeCount === 'number' ? e.attendeeCount : registrations.filter(r => r.eventId === e.id).length),
+    0
+  );
 
   return (
     <div className="max-w-6xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
@@ -167,7 +172,32 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEvents.length === 0 ? (
+        {!user && isAuthReady ? (
+          <div className="col-span-full bg-slate-900 border-2 border-cyan-500/50 rounded-2xl p-8 sm:p-12 text-center shadow-2xl">
+            <div className="w-16 h-16 mx-auto mb-4 bg-cyan-950/60 rounded-full flex items-center justify-center border border-cyan-500/40">
+              <LogIn className="w-8 h-8 text-cyan-400" />
+            </div>
+            <h3 className="font-pixel text-base sm:text-lg text-slate-100 mb-2">
+              {language === 'fr' ? 'Connectez-vous pour accéder aux soirées' : 'Sign In to Browse Live Fundraisers'}
+            </h3>
+            <p className="text-xs sm:text-sm font-retro text-slate-400 max-w-md mx-auto mb-6">
+              {language === 'fr'
+                ? 'Authentifiez-vous avec Google pour consulter les campagnes publiées en temps réel, réserver votre place et sauvegarder vos matchs.'
+                : 'Connect with Google to view live fundraising events, register for a booth, and save your speed dating matches.'}
+            </p>
+            <button
+              onClick={() => {
+                audio.playSelect();
+                void signIn();
+              }}
+              disabled={authLoading}
+              className="min-h-[48px] px-6 py-3 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-60 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 inline-flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>{language === 'fr' ? 'Connexion avec Google' : 'Sign in with Google'}</span>
+            </button>
+          </div>
+        ) : filteredEvents.length === 0 ? (
           <div className="col-span-full bg-slate-900 border-2 border-dashed border-slate-800 rounded-2xl p-10 sm:p-14 text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-pink-950/60 rounded-full flex items-center justify-center border border-pink-500/40">
               <Calendar className="w-8 h-8 text-pink-400" />
@@ -183,9 +213,11 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
           </div>
         ) : (
           filteredEvents.map(event => {
-            const eventRegs = registrations.filter(r => r.eventId === event.id);
+            const eventRegsCount = typeof event.attendeeCount === 'number'
+              ? event.attendeeCount
+              : registrations.filter(r => r.eventId === event.id).length;
             const percent = Math.min(100, Math.round((event.currentFundsRaised / event.fundraisingGoal) * 100));
-          const isCurrentActive = event.id === activeEventId;
+            const isCurrentActive = event.id === activeEventId;
 
           return (
             <div
@@ -244,7 +276,7 @@ export const EventsDirectory: React.FC<EventsDirectoryProps> = ({
                     />
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-retro text-slate-500 mt-1">
-                    <span>{eventRegs.length} {language === 'fr' ? 'participants inscrits' : 'community daters registered'}</span>
+                    <span>{eventRegsCount} {language === 'fr' ? 'participants inscrits' : 'community daters registered'}</span>
                     <span>Max {event.maxCapacity}</span>
                   </div>
                 </div>

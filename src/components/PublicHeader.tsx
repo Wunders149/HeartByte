@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Volume2, VolumeX, Music, Monitor, Heart, Globe, Menu, X, Users, Calendar, Sparkles, MessageSquare } from 'lucide-react';
+import { Volume2, VolumeX, Music, Monitor, Heart, Globe, Menu, X, Users, Calendar, Sparkles, MessageSquare, LogIn, LogOut } from 'lucide-react';
 import { audio } from '../utils/audio';
 import { AppScreen } from '../types/dating';
 import { Language, TRANSLATIONS } from '../utils/i18n';
+import { useFirebase } from '../context/FirebaseContext';
 
 interface PublicHeaderProps {
   currentScreen: AppScreen;
@@ -34,6 +35,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   onStartSpeedDating,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, authLoading, signIn, logout } = useFirebase();
   const t = TRANSLATIONS[language];
 
   const handleMobileNav = (screen: AppScreen) => {
@@ -145,6 +147,33 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
 
         {/* Zone 3: Primary Action & Retro Toggles */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Desktop Google Auth Button */}
+          {user ? (
+            <button
+              onClick={() => {
+                audio.playSelect();
+                void logout();
+              }}
+              title={language === 'fr' ? `Déconnexion (${user.email})` : `Sign out (${user.email})`}
+              className="hidden md:flex min-h-[44px] px-2.5 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/30 hover:bg-emerald-900/40 text-xs font-retro text-emerald-300 items-center gap-1.5 transition-all active:scale-95 max-w-[140px]"
+            >
+              <span className="truncate">{user.displayName?.split(' ')[0] || user.email?.split('@')[0]}</span>
+              <LogOut className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                audio.playSelect();
+                void signIn();
+              }}
+              disabled={authLoading}
+              className="hidden md:flex min-h-[44px] px-3 py-1.5 rounded-lg border border-cyan-500/50 bg-cyan-950/40 hover:bg-cyan-900/40 text-xs font-retro text-cyan-300 items-center gap-1.5 transition-all active:scale-95"
+            >
+              <LogIn className="w-3.5 h-3.5 shrink-0" />
+              <span>{language === 'fr' ? 'Connexion' : 'Sign In'}</span>
+            </button>
+          )}
+
           {/* Language Switcher (EN / FR) */}
           <button
             onClick={() => {
@@ -310,6 +339,44 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             </div>
             <span className="text-[10px] font-pixel opacity-70">05</span>
           </button>
+
+          {/* Mobile Google Account Control */}
+          <div className="pt-2.5 mt-2 border-t border-slate-800">
+            <div className="text-[10px] font-pixel text-slate-400 px-1 mb-2 uppercase tracking-wider">
+              {language === 'fr' ? 'Compte Google' : 'Google Account'}
+            </div>
+            {user ? (
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <div className="min-w-0 text-xs font-retro text-emerald-300 truncate">
+                  {user.email}
+                </div>
+                <button
+                  onClick={() => {
+                    audio.playSelect();
+                    void logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="min-h-[44px] px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs font-retro text-slate-300 flex items-center gap-1.5 shrink-0 active:scale-95"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{language === 'fr' ? 'Quitter' : 'Sign Out'}</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  audio.playSelect();
+                  void signIn();
+                  setMobileMenuOpen(false);
+                }}
+                disabled={authLoading}
+                className="w-full min-h-[44px] px-3.5 py-2 rounded-lg border border-cyan-500/50 bg-cyan-950/40 text-cyan-300 text-xs font-retro flex items-center justify-center gap-2 active:scale-95"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>{language === 'fr' ? 'Se connecter avec Google' : 'Sign in with Google'}</span>
+              </button>
+            )}
+          </div>
 
           {/* Retro Display & Audio Controls for Mobile */}
           <div className="pt-2.5 mt-2 border-t border-slate-800">

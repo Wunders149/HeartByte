@@ -1,0 +1,405 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOBAL HELPERS ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdminEmail() {
+      return isVerifiedUser() && request.auth.token.email == 'razafimahefaphilibert7@gmail.com';
+    }
+
+    function isAdmin() {
+      return isAdminEmail() || (isVerifiedUser() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    // --- VALIDATION BLUEPRINTS ---
+    function isValidAvatar(avatar) {
+      return avatar is map
+        && avatar.keys().hasAll(['skinTone', 'hairStyle', 'hairColor', 'eyeStyle', 'outfitStyle', 'outfitColor', 'accessory', 'expression'])
+        && avatar.keys().hasOnly(['skinTone', 'hairStyle', 'hairColor', 'eyeStyle', 'outfitStyle', 'outfitColor', 'accessory', 'expression'])
+        && avatar.skinTone in ['fair', 'peach', 'warm-tan', 'deep-bronze', 'cyber-lilac', 'alien-mint']
+        && avatar.hairStyle in ['spiky', 'bob', 'pixie', 'afro', 'long', 'cap', 'fade']
+        && avatar.hairColor in ['neon-cyan', 'neon-pink', 'raven', 'golden', 'ruby', 'lavender', 'emerald']
+        && avatar.eyeStyle in ['normal', 'wink', 'shades', 'round-glasses', 'sparkle', 'sleepy']
+        && avatar.outfitStyle in ['arcade-jacket', 'cyber-turtleneck', 'cozy-sweater', 'vintage-shirt', 'hoodie']
+        && avatar.outfitColor in ['cyan', 'magenta', 'yellow', 'purple', 'emerald', 'crimson']
+        && avatar.accessory in ['none', 'headphones', 'cat-ears', 'bandana', 'gold-chain', 'boba']
+        && avatar.expression in ['idle', 'happy', 'blush', 'shock', 'love', 'skeptical'];
+    }
+
+    function isValidEvent(data) {
+      return data.keys().hasAll([
+          'id', 'title', 'subtitle', 'causeCategory', 'description', 'beneficiaryName',
+          'fundraisingGoal', 'currentFundsRaised', 'attendeeCount', 'date', 'time', 'venueName',
+          'venueAddress', 'maxCapacity', 'ticketTiers', 'creatorName', 'creatorId',
+          'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'title', 'subtitle', 'causeCategory', 'description', 'beneficiaryName',
+          'fundraisingGoal', 'currentFundsRaised', 'attendeeCount', 'date', 'time', 'venueName',
+          'venueAddress', 'maxCapacity', 'ticketTiers', 'creatorName', 'creatorId',
+          'customCausePrompt', 'status', 'offlineDonations', 'lastRegistrationId',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id) && data.id.size() <= 64
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 120
+        && data.subtitle is string && data.subtitle.size() <= 200
+        && data.causeCategory in ['arts', 'community', 'environment', 'education', 'tech']
+        && data.description is string && data.description.size() <= 1000
+        && data.beneficiaryName is string && data.beneficiaryName.size() >= 2 && data.beneficiaryName.size() <= 120
+        && data.fundraisingGoal is number && data.fundraisingGoal >= 100 && data.fundraisingGoal <= 10000000
+        && data.currentFundsRaised is number && data.currentFundsRaised >= 0 && data.currentFundsRaised <= 100000000
+        && data.attendeeCount is number && data.attendeeCount >= 0 && data.attendeeCount <= 100000
+        && data.date is string && data.date.size() <= 80
+        && data.time is string && data.time.size() <= 80
+        && data.venueName is string && data.venueName.size() <= 120
+        && data.venueAddress is string && data.venueAddress.size() <= 200
+        && data.maxCapacity is number && data.maxCapacity >= 2 && data.maxCapacity <= 5000
+        && data.ticketTiers is list && data.ticketTiers.size() >= 1 && data.ticketTiers.size() <= 5 && data.ticketTiers[0] is map
+        && data.creatorName is string && data.creatorName.size() <= 80
+        && isValidId(data.creatorId)
+        && data.status in ['draft', 'open', 'active', 'completed']
+        && (!('customCausePrompt' in data) || (data.customCausePrompt is string && data.customCausePrompt.size() <= 300))
+        && (!('offlineDonations' in data) || (data.offlineDonations is number && data.offlineDonations >= 0 && data.offlineDonations <= 100000000))
+        && (!('lastRegistrationId' in data) || isValidId(data.lastRegistrationId))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicProfile(data) {
+      return data.keys().hasAll([
+          'id', 'eventId', 'userId', 'attendeeName', 'pronouns', 'interestedIn',
+          'bio', 'avatar', 'checkedIn', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'eventId', 'userId', 'attendeeName', 'pronouns', 'interestedIn',
+          'bio', 'avatar', 'checkedIn', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.eventId) && data.eventId.size() <= 64
+        && isValidId(data.userId)
+        && data.attendeeName is string && data.attendeeName.size() >= 1 && data.attendeeName.size() <= 80
+        && data.pronouns is string && data.pronouns.size() <= 40
+        && data.interestedIn in ['all', 'men', 'women', 'nonbinary']
+        && data.bio is string && data.bio.size() <= 200
+        && isValidAvatar(data.avatar)
+        && data.checkedIn is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidRegistration(data) {
+      return data.keys().hasAll([
+          'id', 'eventId', 'userId', 'attendeeName', 'attendeeEmail', 'pronouns',
+          'interestedIn', 'ticketTierId', 'ticketPrice', 'additionalDonation',
+          'totalAmount', 'bio', 'avatar', 'registeredAt', 'ticketCode',
+          'checkedIn', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'eventId', 'userId', 'attendeeName', 'attendeeEmail', 'pronouns',
+          'interestedIn', 'ticketTierId', 'ticketPrice', 'additionalDonation',
+          'totalAmount', 'bio', 'avatar', 'registeredAt', 'ticketCode',
+          'checkedIn', 'checkedInAt', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.eventId) && data.eventId.size() <= 64
+        && isValidId(data.userId)
+        && data.attendeeName is string && data.attendeeName.size() >= 1 && data.attendeeName.size() <= 80
+        && data.attendeeEmail is string && data.attendeeEmail.size() >= 3 && data.attendeeEmail.size() <= 120
+        && data.pronouns is string && data.pronouns.size() <= 40
+        && data.interestedIn in ['all', 'men', 'women', 'nonbinary']
+        && isValidId(data.ticketTierId) && data.ticketTierId.size() <= 64
+        && data.ticketPrice is number && data.ticketPrice >= 0 && data.ticketPrice <= 100000
+        && data.additionalDonation is number && data.additionalDonation >= 0 && data.additionalDonation <= 1000000
+        && data.totalAmount is number && data.totalAmount == data.ticketPrice + data.additionalDonation && data.totalAmount <= 1100000
+        && data.bio is string && data.bio.size() <= 200
+        && isValidAvatar(data.avatar)
+        && data.registeredAt is string && data.registeredAt.size() <= 60
+        && data.ticketCode is string && data.ticketCode.size() >= 3 && data.ticketCode.size() <= 40
+        && data.checkedIn is bool
+        && (!('checkedInAt' in data) || (data.checkedInAt is string && data.checkedInAt.size() <= 40))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'userId', 'name', 'pronouns', 'interestedIn', 'vibeTag',
+          'bio', 'favorite8BitGame', 'avatar', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'name', 'pronouns', 'interestedIn', 'vibeTag',
+          'bio', 'favorite8BitGame', 'avatar', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.userId)
+        && data.name is string && data.name.size() <= 80
+        && data.pronouns is string && data.pronouns.size() <= 40
+        && data.interestedIn in ['all', 'men', 'women', 'nonbinary']
+        && data.vibeTag is string && data.vibeTag.size() <= 50
+        && data.bio is string && data.bio.size() <= 250
+        && data.favorite8BitGame is string && data.favorite8BitGame.size() <= 80
+        && isValidAvatar(data.avatar)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDateResult(data) {
+      return data.keys().hasAll([
+          'userId', 'suitorId', 'eventId', 'playerDecision', 'suitorDecision',
+          'finalChemistry', 'playerNotes', 'isMutualMatch', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'suitorId', 'eventId', 'playerDecision', 'suitorDecision',
+          'finalChemistry', 'playerNotes', 'isMutualMatch', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.userId)
+        && isValidId(data.suitorId)
+        && isValidId(data.eventId) && data.eventId.size() <= 64
+        && data.playerDecision in ['like', 'pass', 'superlike']
+        && data.suitorDecision in ['like', 'pass']
+        && data.finalChemistry is number && data.finalChemistry >= 0 && data.finalChemistry <= 100
+        && data.playerNotes is string && data.playerNotes.size() <= 300
+        && data.isMutualMatch is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMatchMessage(data) {
+      return data.keys().hasAll(['id', 'userId', 'suitorId', 'sender', 'text', 'timestamp', 'createdAt'])
+        && data.keys().hasOnly(['id', 'userId', 'suitorId', 'sender', 'text', 'timestamp', 'isDateInvite', 'dateAccepted', 'createdAt'])
+        && isValidId(data.id)
+        && isValidId(data.userId)
+        && isValidId(data.suitorId)
+        && data.sender in ['player', 'suitor']
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 500
+        && data.timestamp is string && data.timestamp.size() <= 40
+        && (!('isDateInvite' in data) || data.isDateInvite is bool)
+        && (!('dateAccepted' in data) || data.dateAccepted is bool)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'role', 'createdAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 120
+        && data.role in ['organizer', 'superadmin']
+        && data.createdAt is timestamp;
+    }
+
+    // --- COLLECTION RULES ---
+
+    // 1. Events Collection (Only Admin Can Create/Delete; Atomic Registration Donation Increment Allowed)
+    match /events/{eventId} {
+      allow get: if isSignedIn() && isValidId(eventId)
+        && (existing().status in ['open', 'active', 'completed'] || isAdmin());
+      allow list: if isSignedIn()
+        && (existing().status in ['open', 'active', 'completed'] || isAdminEmail());
+
+      allow create: if isVerifiedUser() && isValidId(eventId) && isValidEvent(incoming())
+        && isAdmin()
+        && incoming().id == eventId
+        && incoming().creatorId == request.auth.uid
+        && incoming().currentFundsRaised == 0
+        && incoming().attendeeCount == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() && isValidId(eventId) && isValidEvent(incoming())
+        && incoming().id == existing().id
+        && incoming().creatorId == existing().creatorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            existing().status in ['open', 'active']
+            && incoming().diff(existing()).affectedKeys().hasOnly(['currentFundsRaised', 'attendeeCount', 'lastRegistrationId', 'updatedAt'])
+            && ('lastRegistrationId' in incoming())
+            && isValidId(incoming().lastRegistrationId)
+            && existsAfter(/databases/$(database)/documents/registrations/$(incoming().lastRegistrationId))
+            && getAfter(/databases/$(database)/documents/registrations/$(incoming().lastRegistrationId)).data.eventId == eventId
+            && getAfter(/databases/$(database)/documents/registrations/$(incoming().lastRegistrationId)).data.userId == request.auth.uid
+            && incoming().attendeeCount == existing().attendeeCount + 1
+            && incoming().currentFundsRaised == existing().currentFundsRaised + getAfter(/databases/$(database)/documents/registrations/$(incoming().lastRegistrationId)).data.totalAmount
+          )
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(eventId) && isAdmin();
+
+      // 1b. Non-PII Public Attendee Profiles for Speed Dating Floor
+      match /publicProfiles/{registrationId} {
+        allow get: if isSignedIn() && isValidId(eventId) && isValidId(registrationId)
+          && exists(/databases/$(database)/documents/events/$(eventId));
+        allow list: if isSignedIn() && existing().eventId == eventId;
+
+        allow create: if isVerifiedUser() && isValidId(eventId) && isValidId(registrationId)
+          && isValidPublicProfile(incoming())
+          && incoming().id == registrationId
+          && incoming().eventId == eventId
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && (
+            isAdmin() ||
+            (
+              incoming().userId == request.auth.uid
+              && incoming().checkedIn == false
+              && exists(/databases/$(database)/documents/events/$(eventId))
+              && existsAfter(/databases/$(database)/documents/registrations/$(registrationId))
+            )
+          );
+
+        allow update: if isVerifiedUser() && isValidId(eventId) && isValidId(registrationId)
+          && isValidPublicProfile(incoming())
+          && incoming().id == existing().id
+          && incoming().eventId == existing().eventId
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && (
+            isAdmin() ||
+            (
+              existing().userId == request.auth.uid
+              && incoming().diff(existing()).affectedKeys().hasOnly(['attendeeName', 'pronouns', 'interestedIn', 'bio', 'avatar', 'updatedAt'])
+            )
+          );
+
+        allow delete: if isVerifiedUser() && isValidId(eventId) && isValidId(registrationId) && isAdmin();
+      }
+    }
+
+    // 2. Private Registrations Collection (Strict PII Isolation)
+    match /registrations/{registrationId} {
+      allow get: if isSignedIn() && isValidId(registrationId)
+        && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn()
+        && (existing().userId == request.auth.uid || isAdminEmail());
+
+      allow create: if isVerifiedUser() && isValidId(registrationId) && isValidRegistration(incoming())
+        && incoming().id == registrationId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            incoming().userId == request.auth.uid
+            && incoming().checkedIn == false
+            && exists(/databases/$(database)/documents/events/$(incoming().eventId))
+            && existsAfter(/databases/$(database)/documents/events/$(incoming().eventId)/publicProfiles/$(registrationId))
+          )
+        );
+
+      allow update: if isVerifiedUser() && isValidId(registrationId) && isValidRegistration(incoming())
+        && incoming().id == existing().id
+        && incoming().eventId == existing().eventId
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if isVerifiedUser() && isValidId(registrationId) && isAdmin();
+    }
+
+    // 3. User Profiles & Personal Dating State
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdminEmail());
+
+      allow create: if isVerifiedUser() && isValidId(userId) && isValidUserProfile(incoming())
+        && isOwner(userId)
+        && incoming().userId == userId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() && isValidId(userId) && isValidUserProfile(incoming())
+        && isOwner(userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'pronouns', 'interestedIn', 'vibeTag', 'bio', 'favorite8BitGame', 'avatar', 'updatedAt']);
+
+      allow delete: if isVerifiedUser() && isValidId(userId) && isAdmin();
+
+      match /dateResults/{suitorId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(suitorId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdminEmail());
+
+        allow create: if isVerifiedUser() && isValidId(userId) && isValidId(suitorId) && isValidDateResult(incoming())
+          && isOwner(userId)
+          && incoming().userId == userId
+          && incoming().suitorId == suitorId
+          && exists(/databases/$(database)/documents/events/$(incoming().eventId))
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if isVerifiedUser() && isValidId(userId) && isValidId(suitorId) && isValidDateResult(incoming())
+          && isOwner(userId)
+          && incoming().userId == existing().userId
+          && incoming().suitorId == existing().suitorId
+          && incoming().eventId == existing().eventId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['playerDecision', 'suitorDecision', 'finalChemistry', 'playerNotes', 'isMutualMatch', 'updatedAt']);
+
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(suitorId) && (isOwner(userId) || isAdmin());
+      }
+
+      match /matchMessages/{messageId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(messageId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdminEmail());
+
+        allow create: if isVerifiedUser() && isValidId(userId) && isValidId(messageId) && isValidMatchMessage(incoming())
+          && isOwner(userId)
+          && incoming().id == messageId
+          && incoming().userId == userId
+          && incoming().createdAt == request.time;
+
+        allow update: if isVerifiedUser() && isValidId(userId) && isValidId(messageId) && isValidMatchMessage(incoming())
+          && isOwner(userId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().suitorId == existing().suitorId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly(['dateAccepted']);
+
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(messageId) && (isOwner(userId) || isAdmin());
+      }
+    }
+
+    // 4. Admin Directory (Strictly controlled by Bootstrapped Admin)
+    match /admins/{uid} {
+      allow get: if isVerifiedUser() && isValidId(uid) && (isOwner(uid) || isAdminEmail());
+      allow list: if isAdminEmail();
+      allow create, update: if isAdminEmail() && isValidId(uid) && isValidAdminRecord(incoming()) && incoming().uid == uid && incoming().createdAt == request.time;
+      allow delete: if isAdminEmail() && isValidId(uid);
+    }
+  }
+}

@@ -4,7 +4,8 @@ import { CommunityEvent, EventRegistration, PlayerProfile } from '../types/datin
 import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { X, Check, Ticket, Heart, Sparkles, Building2, QrCode } from 'lucide-react';
+import { useFirebase } from '../context/FirebaseContext';
+import { X, Check, Ticket, Heart, Building2, LogIn } from 'lucide-react';
 
 interface RegistrationModalProps {
   event: CommunityEvent;
@@ -12,7 +13,7 @@ interface RegistrationModalProps {
   isOpen: boolean;
   language?: Language;
   onClose: () => void;
-  onCompleteRegistration: (registration: EventRegistration) => void;
+  onCompleteRegistration: (registration: EventRegistration) => Promise<void> | void;
 }
 
 export const RegistrationModal: React.FC<RegistrationModalProps> = ({
@@ -23,12 +24,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   onClose,
   onCompleteRegistration,
 }) => {
+  const { user, signIn, authLoading } = useFirebase();
   const [selectedTierId, setSelectedTierId] = useState<string>(
     event.ticketTiers[0]?.id || ''
   );
   const [additionalDonation, setAdditionalDonation] = useState<number>(10);
-  const [attendeeName, setAttendeeName] = useState<string>(playerProfile.name || '');
-  const [attendeeEmail, setAttendeeEmail] = useState<string>('alex.heart@example.com');
+  const [attendeeName, setAttendeeName] = useState<string>(playerProfile.name || user?.displayName || '');
+  const [attendeeEmail, setAttendeeEmail] = useState<string>(user?.email || '');
   const [pronouns, setPronouns] = useState<string>(playerProfile.pronouns || 'they/them');
   const [interestedIn, setInterestedIn] = useState<PlayerProfile['interestedIn']>(playerProfile.interestedIn || 'all');
   const [datingBio, setDatingBio] = useState<string>(
@@ -37,7 +39,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       : (playerProfile.bio || 'Excited to support this cause and meet lovely people!')
   );
   const [ticketIssued, setTicketIssued] = useState<EventRegistration | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const t = TRANSLATIONS[language];
+
+  useEffect(() => {
+    if (user) {
+      if (!attendeeName && user.displayName) setAttendeeName(user.displayName);
+      if (!attendeeEmail && user.email) setAttendeeEmail(user.email);
+    }
+  }, [user, attendeeName, attendeeEmail]);
 
   // Close on Escape key
   useEffect(() => {
@@ -58,39 +68,49 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const ticketPrice = selectedTier?.price || 15;
   const totalAmount = ticketPrice + additionalDonation;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!attendeeName.trim() || !attendeeEmail.trim()) return;
+    if (!user) {
+      await signIn();
+      return;
+    }
+    if (!attendeeName.trim() || !attendeeEmail.trim() || submitting) return;
 
-    audio.playMatchFanfare();
-    confetti({
-      particleCount: 60,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#10b981', '#ec4899', '#38bdf8', '#facc15']
-    });
+    setSubmitting(true);
+    try {
+      const randomCode = `${event.id.slice(0, 4).toUpperCase()}-${attendeeName.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
 
-    const randomCode = `${event.id.slice(0, 4).toUpperCase()}-${attendeeName.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+      const newRegistration: EventRegistration = {
+        id: `reg-${Date.now()}`,
+        eventId: event.id,
+        userId: user.uid,
+        attendeeName: attendeeName.trim(),
+        attendeeEmail: attendeeEmail.trim(),
+        pronouns,
+        interestedIn,
+        ticketTierId: selectedTier.id,
+        ticketPrice,
+        additionalDonation,
+        totalAmount,
+        avatar: playerProfile.avatar,
+        bio: datingBio,
+        registeredAt: 'Just now',
+        ticketCode: randomCode,
+      };
 
-    const newRegistration: EventRegistration = {
-      id: `reg-${Date.now()}`,
-      eventId: event.id,
-      attendeeName: attendeeName.trim(),
-      attendeeEmail: attendeeEmail.trim(),
-      pronouns,
-      interestedIn,
-      ticketTierId: selectedTier.id,
-      ticketPrice,
-      additionalDonation,
-      totalAmount,
-      avatar: playerProfile.avatar,
-      bio: datingBio,
-      registeredAt: 'Just now',
-      ticketCode: randomCode,
-    };
+      await onCompleteRegistration(newRegistration);
 
-    setTicketIssued(newRegistration);
-    onCompleteRegistration(newRegistration);
+      audio.playMatchFanfare();
+      confetti({
+        particleCount: 60,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#10b981', '#ec4899', '#38bdf8', '#facc15']
+      });
+      setTicketIssued(newRegistration);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -350,13 +370,29 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full sm:w-auto min-h-[48px] px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 text-slate-950 font-pixel text-xs rounded-xl shadow-lg active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
-              >
-                <Heart className="w-4 h-4 fill-slate-950" />
-                <span>{t.completeRegBtn}</span>
-              </button>
+              {user ? (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full sm:w-auto min-h-[48px] px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-400 hover:to-rose-300 disabled:opacity-60 text-slate-950 font-pixel text-xs rounded-xl shadow-lg active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                >
+                  <Heart className="w-4 h-4 fill-slate-950" />
+                  <span>{submitting ? (language === 'fr' ? 'Validation...' : 'Saving...') : t.completeRegBtn}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    audio.playSelect();
+                    void signIn();
+                  }}
+                  disabled={authLoading}
+                  className="w-full sm:w-auto min-h-[48px] px-6 py-3 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-60 text-slate-950 font-pixel text-xs rounded-xl shadow-lg active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{language === 'fr' ? 'Connexion Google pour valider' : 'Sign in with Google to Register'}</span>
+                </button>
+              )}
             </div>
           </form>
         )}

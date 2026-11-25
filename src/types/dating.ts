@@ -88,6 +88,7 @@ export interface TicketTier {
 export interface EventRegistration {
   id: string;
   eventId: string;
+  userId?: string;
   attendeeName: string;
   attendeeEmail: string;
   pronouns: string;
@@ -116,6 +117,7 @@ export interface CommunityEvent {
   beneficiaryName: string;
   fundraisingGoal: number;
   currentFundsRaised: number;
+  attendeeCount?: number;
   date: string;
   time: string;
   venueName: string;
@@ -123,9 +125,11 @@ export interface CommunityEvent {
   maxCapacity: number;
   ticketTiers: TicketTier[];
   creatorName: string;
+  creatorId?: string;
   customCausePrompt?: string;
   status?: EventStatus;
   offlineDonations?: number;
+  lastRegistrationId?: string;
 }
 
 export interface AdminSession {

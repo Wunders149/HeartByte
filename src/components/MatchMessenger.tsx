@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Suitor, PlayerProfile } from '../types/dating';
 import { PixelAvatar } from './PixelAvatar';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
+import { StoredMatchMessage } from '../utils/firestoreSync';
 import { Send, MapPin, Calendar, Heart, CheckCircle2 } from 'lucide-react';
 
 interface ChatMessage {
@@ -11,6 +12,7 @@ interface ChatMessage {
   text: string;
   timestamp: string;
   isDateInvite?: boolean;
+  dateAccepted?: boolean;
 }
 
 interface MatchMessengerProps {
@@ -18,6 +20,8 @@ interface MatchMessengerProps {
   playerProfile: PlayerProfile;
   initialSuitorId?: string;
   language?: Language;
+  storedMessages?: StoredMatchMessage[];
+  onPersistMessage?: (suitorId: string, msg: ChatMessage) => void;
   onBackToLobby: () => void;
   onOpenReveal?: () => void;
 }
@@ -27,6 +31,8 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
   playerProfile,
   initialSuitorId,
   language = 'fr',
+  storedMessages = [],
+  onPersistMessage,
   onBackToLobby,
   onOpenReveal,
 }) => {
@@ -39,31 +45,52 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
   const t = TRANSLATIONS[language];
 
   // Suitor conversations store
-  const [conversations, setConversations] = useState<Record<string, ChatMessage[]>>(() => {
-    const init: Record<string, ChatMessage[]> = {};
+  const [conversations, setConversations] = useState<Record<string, ChatMessage[]>>({});
+
+  useEffect(() => {
+    const nextMap: Record<string, ChatMessage[]> = {};
+    const accepted: Record<string, boolean> = {};
+
     matchedSuitors.forEach(s => {
-      init[s.id] = [
-        {
-          id: '1',
-          sender: 'suitor',
-          text: language === 'fr'
-            ? `Coucou ${playerProfile.name || ''} ! J'ai tellement apprécié notre speed dating tout à l'heure. Ton énergie était 10/10 !`
-            : `Hey ${playerProfile.name || 'there'}! I had so much fun at our speed dating table earlier. Your vibe was totally 10/10!`,
-          timestamp: language === 'fr' ? 'À l’instant' : 'Just now'
-        },
-        {
-          id: '2',
-          sender: 'suitor',
-          text: language === 'fr'
-            ? `Je me demandais... est-ce que tu aimerais faire un 2e rendez-vous avec moi à ${s.inviteDateLocation} ? On pourrait faire : ${s.secondDateActivity} !`
-            : `I was wondering... would you want to go on Date #2 with me at ${s.inviteDateLocation}? We could do ${s.secondDateActivity}!`,
-          timestamp: language === 'fr' ? 'À l’instant' : 'Just now',
-          isDateInvite: true
+      const saved = storedMessages.filter(m => m.suitorId === s.id);
+      if (saved.length > 0) {
+        nextMap[s.id] = saved.map(m => ({
+          id: m.id,
+          sender: m.sender,
+          text: m.text,
+          timestamp: m.timestamp,
+          isDateInvite: m.isDateInvite,
+          dateAccepted: m.dateAccepted,
+        }));
+        if (saved.some(m => m.dateAccepted || (m.sender === 'player' && m.text.includes('Date #2')))) {
+          accepted[s.id] = true;
         }
-      ];
+      } else {
+        nextMap[s.id] = [
+          {
+            id: `init-1-${s.id}`,
+            sender: 'suitor',
+            text: language === 'fr'
+              ? `Coucou ${playerProfile.name || ''} ! J'ai tellement apprécié notre speed dating tout à l'heure. Ton énergie était 10/10 !`
+              : `Hey ${playerProfile.name || 'there'}! I had so much fun at our speed dating table earlier. Your vibe was totally 10/10!`,
+            timestamp: language === 'fr' ? 'À l’instant' : 'Just now'
+          },
+          {
+            id: `init-2-${s.id}`,
+            sender: 'suitor',
+            text: language === 'fr'
+              ? `Je me demandais... est-ce que tu aimerais faire un 2e rendez-vous avec moi à ${s.inviteDateLocation} ? On pourrait faire : ${s.secondDateActivity} !`
+              : `I was wondering... would you want to go on Date #2 with me at ${s.inviteDateLocation}? We could do ${s.secondDateActivity}!`,
+            timestamp: language === 'fr' ? 'À l’instant' : 'Just now',
+            isDateInvite: true
+          }
+        ];
+      }
     });
-    return init;
-  });
+
+    setConversations(nextMap);
+    setDateAcceptedMap(prev => ({ ...accepted, ...prev }));
+  }, [matchedSuitors, storedMessages, language, playerProfile.name]);
 
   const activeSuitor = matchedSuitors.find(s => s.id === selectedSuitorId) || matchedSuitors[0];
 
@@ -76,16 +103,17 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
     setInputMessage('');
 
     const newPlayerMsg: ChatMessage = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}`,
       sender: 'player',
       text: userText,
-      timestamp: 'Just now'
+      timestamp: language === 'fr' ? 'À l’instant' : 'Just now'
     };
 
     setConversations(prev => ({
       ...prev,
       [activeSuitor.id]: [...(prev[activeSuitor.id] || []), newPlayerMsg]
     }));
+    onPersistMessage?.(activeSuitor.id, newPlayerMsg);
 
     // Suitor smart playful auto-reply
     setTimeout(() => {
@@ -99,16 +127,17 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
       const randomReply = replies[Math.floor(Math.random() * replies.length)];
 
       const suitorReplyMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `msg-${Date.now() + 1}`,
         sender: 'suitor',
         text: randomReply,
-        timestamp: 'Just now'
+        timestamp: language === 'fr' ? 'À l’instant' : 'Just now'
       };
 
       setConversations(prev => ({
         ...prev,
         [activeSuitor.id]: [...(prev[activeSuitor.id] || []), suitorReplyMsg]
       }));
+      onPersistMessage?.(activeSuitor.id, suitorReplyMsg);
     }, 1200);
   };
 
@@ -118,16 +147,18 @@ export const MatchMessenger: React.FC<MatchMessengerProps> = ({
 
     // Send confirmation message in chat
     const confirmMsg: ChatMessage = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}`,
       sender: 'player',
       text: `YES! Date #2 is officially locked in! Looking forward to it! ♥`,
-      timestamp: 'Just now'
+      timestamp: language === 'fr' ? 'À l’instant' : 'Just now',
+      dateAccepted: true
     };
 
     setConversations(prev => ({
       ...prev,
       [suitorId]: [...(prev[suitorId] || []), confirmMsg]
     }));
+    onPersistMessage?.(suitorId, confirmMsg);
   };
 
   if (matchedSuitors.length === 0) {

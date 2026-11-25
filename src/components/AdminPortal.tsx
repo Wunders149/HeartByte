@@ -4,7 +4,9 @@ import { AdminHeader } from './AdminHeader';
 import { AdminDashboard } from './AdminDashboard';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { ShieldCheck, Lock, KeyRound, ArrowLeft, AlertCircle, Globe } from 'lucide-react';
+import { useFirebase } from '../context/FirebaseContext';
+import { ADMIN_EMAIL, isFirebaseAdminUser } from '../firebase';
+import { Lock, ArrowLeft, AlertCircle, Globe, LogIn } from 'lucide-react';
 
 interface AdminPortalProps {
   events: CommunityEvent[];
@@ -31,9 +33,6 @@ interface AdminPortalProps {
   onExitToPublic: () => void;
 }
 
-const DEFAULT_ORGANIZER_PIN = 'HEARTBYTE89';
-const ORGANIZER_EMAIL = 'razafimahefaphilibert7@gmail.com';
-
 export const AdminPortal: React.FC<AdminPortalProps> = ({
   events,
   registrations,
@@ -58,37 +57,44 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onAddOfflineDonation,
   onExitToPublic,
 }) => {
-  const [passcode, setPasscode] = useState<string>('');
+  const { user, isAdmin, authLoading, authError, clearAuthError, signIn, logout } = useFirebase();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'events' | 'attendees' | 'speeddating' | 'analytics'>('events');
 
   const t = TRANSLATIONS[language];
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passcode.trim().toUpperCase() === DEFAULT_ORGANIZER_PIN || passcode.trim() === '8888') {
+  const handleGoogleLogin = async () => {
+    audio.playSelect();
+    setErrorMsg(null);
+    clearAuthError();
+
+    const signedInUser = await signIn();
+    if (!signedInUser) return;
+
+    if (isFirebaseAdminUser(signedInUser)) {
       audio.playMatchFanfare();
-      sessionStorage.setItem('heartbyte_admin_auth', 'true');
       onAuthenticated();
-      setPasscode('');
-      setErrorMsg(null);
     } else {
       audio.playPass();
-      setErrorMsg(language === 'fr'
-        ? 'Code secret administrateur invalide. Seul l’administrateur peut accéder.'
-        : 'Invalid admin keycode. Only the admin is authorized.');
+      setErrorMsg(
+        language === 'fr'
+          ? `Accès refusé pour ${signedInUser.email || 'ce compte'}. Seul l’administrateur (${ADMIN_EMAIL}) est autorisé.`
+          : `Access denied for ${signedInUser.email || 'this account'}. Only the admin (${ADMIN_EMAIL}) is authorized.`
+      );
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     audio.playSelect();
-    sessionStorage.removeItem('heartbyte_admin_auth');
+    await logout();
     onLogout();
     onExitToPublic();
   };
 
-  // If not authenticated, render the retro Organizer Gateway
-  if (!isAuthenticated) {
+  // Require real Firebase Admin auth
+  if (!isAuthenticated || !isAdmin) {
+    const displayedError = errorMsg || authError;
+
     return (
       <div className="min-h-[calc(100vh-68px)] flex flex-col items-center justify-center p-4 bg-slate-950 relative overflow-hidden">
         {/* Language switch at top right */}
@@ -126,42 +132,44 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-[11px] font-pixel text-slate-300 mb-1.5">
-                {t.staffKeycodeLabel}
-              </label>
-              <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  required
-                  value={passcode}
-                  onChange={e => {
-                    setPasscode(e.target.value);
-                    if (errorMsg) setErrorMsg(null);
-                  }}
-                  placeholder="••••••••••"
-                  className="w-full min-h-[44px] bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2.5 text-base sm:text-xs font-pixel text-yellow-300 focus:outline-none focus:border-yellow-400 placeholder:text-slate-600"
-                />
+          <div className="space-y-4">
+            <div className="p-3.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs font-retro text-slate-300 space-y-1.5">
+              <div className="font-pixel text-[10px] text-yellow-400">
+                {language === 'fr' ? 'COMPTE ORGANISATEUR AUTORISÉ' : 'AUTHORIZED ORGANIZER ACCOUNT'}
               </div>
+              <p className="text-slate-400">
+                {language === 'fr'
+                  ? `Connectez-vous via Google avec l’adresse ${ADMIN_EMAIL} pour gérer les soirées et inscriptions.`
+                  : `Sign in with Google using ${ADMIN_EMAIL} to manage campaigns and attendees.`}
+              </p>
+              {user && !isAdmin && (
+                <div className="text-[11px] text-amber-300 pt-1">
+                  {language === 'fr' ? 'Connecté :' : 'Signed in:'} {user.email}
+                </div>
+              )}
             </div>
 
-            {errorMsg && (
+            {displayedError && (
               <div className="p-2.5 bg-rose-950/60 border border-rose-500/50 rounded-lg text-rose-300 font-retro text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                <span>{errorMsg}</span>
+                <span>{displayedError}</span>
               </div>
             )}
 
             <button
-              type="submit"
-              className="w-full min-h-[48px] py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-pixel text-xs rounded-lg shadow-md transition-all active:scale-95"
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={authLoading}
+              className="w-full min-h-[48px] py-2.5 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-60 text-slate-950 font-pixel text-xs rounded-lg shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
             >
-              {t.verifyUnlockBtn}
+              <LogIn className="w-4 h-4" />
+              <span>
+                {authLoading
+                  ? (language === 'fr' ? 'Connexion...' : 'Signing in...')
+                  : (language === 'fr' ? 'Connexion Google Admin' : 'Sign in with Google')}
+              </span>
             </button>
-          </form>
+          </div>
 
           <div className="mt-5 pt-5 border-t border-slate-800 text-center">
             <button
@@ -220,14 +228,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-            <span>{t.footerStaffSession}: {ORGANIZER_EMAIL}</span>
+            <span>{t.footerStaffSession}: {user?.email || ADMIN_EMAIL}</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
-            <button onClick={handleLogout} className="text-yellow-400 hover:underline">
+            <button onClick={handleLogout} className="min-h-[44px] sm:min-h-0 px-2 text-yellow-400 hover:underline">
               {t.footerLockLogout}
             </button>
             <span className="text-slate-700">·</span>
-            <button onClick={onExitToPublic} className="text-slate-400 hover:underline">
+            <button onClick={onExitToPublic} className="min-h-[44px] sm:min-h-0 px-2 text-slate-400 hover:underline">
               {t.exitToPublic}
             </button>
           </div>

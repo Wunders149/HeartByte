@@ -4,7 +4,8 @@ import { PixelAvatar } from './PixelAvatar';
 import { CommunityFundraiserBar } from './CommunityFundraiserBar';
 import { audio } from '../utils/audio';
 import { Language, TRANSLATIONS } from '../utils/i18n';
-import { Heart, Play, Users, MessageSquare, Flame, Check, HelpCircle, Ticket, ArrowLeft, Award, Sparkles } from 'lucide-react';
+import { useFirebase } from '../context/FirebaseContext';
+import { Heart, Play, Users, MessageSquare, Flame, Check, HelpCircle, Ticket, ArrowLeft, Award, Sparkles, LogIn } from 'lucide-react';
 
 interface EventLobbyProps {
   event?: CommunityEvent | null;
@@ -40,9 +41,41 @@ export const EventLobby: React.FC<EventLobbyProps> = ({
   const [filter, setFilter] = useState<'all' | 'women' | 'men' | 'nonbinary'>('all');
   const [showRules, setShowRules] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'dating-floor' | 'attendees'>('dating-floor');
+  const { user, isAuthReady, signIn, authLoading } = useFirebase();
   const t = TRANSLATIONS[language];
 
   if (!event) {
+    if (!user && isAuthReady) {
+      return (
+        <div className="max-w-xl mx-auto py-16 px-4 text-center">
+          <div className="bg-slate-900 border-2 border-cyan-500/40 rounded-2xl p-8 shadow-2xl">
+            <div className="w-16 h-16 mx-auto mb-4 bg-cyan-950/60 rounded-full flex items-center justify-center border border-cyan-500/50">
+              <LogIn className="w-8 h-8 text-cyan-400" />
+            </div>
+            <h2 className="font-pixel text-xl text-cyan-400 mb-3">
+              {language === 'fr' ? 'Connexion Requise' : 'Sign In Required'}
+            </h2>
+            <p className="font-retro text-sm text-slate-300 max-w-md mx-auto mb-6">
+              {language === 'fr'
+                ? 'Connectez-vous avec Google pour accéder aux soirées publiées et participer au speed dating.'
+                : 'Sign in with Google to access published fundraisers and enter the speed dating floor.'}
+            </p>
+            <button
+              onClick={() => {
+                audio.playSelect();
+                void signIn();
+              }}
+              disabled={authLoading}
+              className="min-h-[44px] px-6 py-2.5 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-pixel text-xs rounded-xl shadow-lg transition-all active:scale-95 inline-flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>{language === 'fr' ? 'Connexion avec Google' : 'Sign in with Google'}</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-xl mx-auto py-16 px-4 text-center">
         <div className="bg-slate-900 border-2 border-pink-500/40 rounded-2xl p-8 shadow-2xl">
